@@ -15,12 +15,14 @@
   <script type="importmap">
   {
     "imports": {
-      "idb": "./lib/idb.js",
-      "papaparse": "./lib/papaparse.min.js",
-      "sql.js": "./lib/sql-wasm.js"
+      "idb": "./lib/idb.js"
     }
   }
   </script>
+  <!-- UMD libs loaded as regular scripts (not ES modules) -->
+  <script src="./lib/papaparse.min.js"></script>
+  <script src="./lib/html5-qrcode.min.js"></script>
+  <script src="./lib/sql-wasm.js"></script>
 </head>
 <body>
   <div id="app">

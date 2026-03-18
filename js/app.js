@@ -164,6 +164,7 @@ export async function init() {
 }
 
 // Auto-initialize only in a real browser context, not during test runs.
-if (import.meta.env.MODE !== 'test') {
+// import.meta.env is Vite-only; in the browser it's undefined.
+if (typeof import.meta.env === 'undefined' || import.meta.env.MODE !== 'test') {
   init();
 }

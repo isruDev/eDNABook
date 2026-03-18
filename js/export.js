@@ -1,7 +1,14 @@
 // js/export.js
-import Papa from '../lib/papaparse.min.js';
-import initSqlJs from '../lib/sql-wasm.js';
+// UMD libs: loaded via <script> in browser (sets globals), via vitest alias in tests
 import { parseProject } from './db.js';
+
+// Resolve Papa: window global (browser) or dynamic import (test/Node)
+let Papa;
+if (typeof window !== 'undefined' && window.Papa) {
+  Papa = window.Papa;
+} else {
+  Papa = (await import('../lib/papaparse.min.js')).default;
+}
 
 /**
  * Converts a field name string into a snake_case SQL column name.
@@ -106,7 +113,10 @@ export async function generateSQLite(project, samples, locateFile = () => '../li
   };
   fields.forEach((f) => { colTypes[f] = 'TEXT'; });
 
-  const SQL = await initSqlJs({ locateFile });
+  // initSqlJs loaded via <script> tag (UMD, sets window.initSqlJs)
+  // In test env, vitest alias provides it as an ESM import
+  const loader = typeof window !== 'undefined' && window.initSqlJs ? window.initSqlJs : (await import('../lib/sql-wasm.js')).default;
+  const SQL = await loader({ locateFile });
   const db = new SQL.Database();
 
   const colDefs = allHeaders

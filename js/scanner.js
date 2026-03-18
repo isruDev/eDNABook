@@ -1,4 +1,12 @@
-import { Html5Qrcode } from '../lib/html5-qrcode.min.js';
+// Html5Qrcode loaded via <script> tag in index.html (UMD, sets window.Html5Qrcode)
+// In test env, vitest alias provides it as an ESM import
+let Html5Qrcode;
+if (typeof window !== 'undefined' && window.Html5Qrcode) {
+  Html5Qrcode = window.Html5Qrcode;
+} else {
+  const mod = await import('../lib/html5-qrcode.min.js');
+  Html5Qrcode = mod.Html5Qrcode;
+}
 
 const SCANNING_STATE = 2;
 
