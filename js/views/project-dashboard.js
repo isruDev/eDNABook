@@ -8,6 +8,7 @@ import {
 } from '../db.js';
 import { $, clearElement, showView, showToast, confirmDialog, formatDate } from '../ui.js';
 import { navigate } from '../app.js';
+import { showExportDialog } from './export-dialog.js';
 
 /**
  * Renders the project dashboard view for the given project.
@@ -47,11 +48,7 @@ export async function renderProjectDashboard(projectId) {
 
   // Export button click handler
   exportBtn.onclick = () => {
-    if (typeof showExportDialog === 'function') {
-      showExportDialog(projectId);
-    } else {
-      showToast('Export coming soon');
-    }
+    showExportDialog(projectId);
   };
 
   // Render sample list

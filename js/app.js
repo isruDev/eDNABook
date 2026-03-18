@@ -1,4 +1,5 @@
 import { initDB } from './db.js';
+import { showToast } from './ui.js';
 
 /**
  * @typedef {{ route: string, params: Record<string, string> }} ParsedRoute
@@ -138,6 +139,7 @@ export async function onRouteChange() {
     }
   } catch (err) {
     console.warn(`[router] Failed to load view for route "${route}":`, err.message);
+    showToast('Something went wrong loading this view.', 'error');
   }
 }
 

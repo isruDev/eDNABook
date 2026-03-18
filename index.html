@@ -1,46 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1a5632">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="eDNA Logger">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./css/style.css">
-  <title>eDNA Metadata Logger</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a5632" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="eDNA Logger" />
+  <title>eDNA Logger</title>
+  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <script type="importmap">
   {
     "imports": {
-      "idb": "./lib/idb.js"
+      "idb": "./lib/idb.js",
+      "papaparse": "./lib/papaparse.min.js",
+      "sql.js": "./lib/sql-wasm.js"
     }
   }
   </script>
 </head>
 <body>
   <div id="app">
-    <div class="view" data-view="home">
-      <header><h1>eDNA Logger</h1></header>
-      <div id="home-actions"></div>
-      <div id="project-list"></div>
-    </div>
-    <div class="view" data-view="project-form">
-      <header>
-        <button class="btn-back" id="form-back-btn">Back</button>
-        <h1 id="form-title">New Project</h1>
-      </header>
-      <form id="project-form">
-        <label for="project-title-input">Project Title</label>
-        <input type="text" id="project-title-input" placeholder="e.g., River Survey 2026" required>
-        <h2>Metadata Fields</h2>
-        <div id="field-list"></div>
-        <button type="button" class="btn-secondary" id="add-field-btn">Add Field</button>
-        <button type="submit" class="btn-primary" id="save-project-btn">Save Project</button>
-      </form>
-    </div>
+    <header class="app-header" id="app-header">
+      <button class="btn-back" id="back-btn" style="display:none" aria-label="Back"></button>
+      <h1 id="app-title">eDNA Logger</h1>
+      <button class="btn-icon" id="header-action-btn" style="display:none" aria-label="Action"></button>
+    </header>
+
+    <main id="main-content">
+      <div class="view" data-view="home" id="view-home"></div>
+      <div class="view" data-view="project-form" id="view-project-form"></div>
+      <div class="view" data-view="project-dashboard" id="view-project-dashboard"></div>
+      <div class="view" data-view="sample-entry" id="view-sample-entry"></div>
+      <div class="view" data-view="sample-detail" id="view-sample-detail"></div>
+    </main>
   </div>
+
   <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
   <script type="module" src="./js/app.js"></script>
 </body>
