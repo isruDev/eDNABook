@@ -1,0 +1,24 @@
+{
+  "name": "eDNA Metadata Logger",
+  "short_name": "eDNA Logger",
+  "description": "Offline-first PWA for logging environmental DNA sample metadata in the field.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1a5632",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
