@@ -31,11 +31,85 @@
     </header>
 
     <main id="main-content">
-      <div class="view" data-view="home" id="view-home"></div>
-      <div class="view" data-view="project-form" id="view-project-form"></div>
-      <div class="view" data-view="project-dashboard" id="view-project-dashboard"></div>
-      <div class="view" data-view="sample-entry" id="view-sample-entry"></div>
-      <div class="view" data-view="sample-detail" id="view-sample-detail"></div>
+      <div class="view" data-view="home" id="view-home">
+        <div id="home-actions"></div>
+        <div id="project-list"></div>
+      </div>
+
+      <div class="view" data-view="project-form" id="view-project-form">
+        <form id="project-form">
+          <label for="project-title-input">Project Title</label>
+          <input type="text" id="project-title-input" placeholder="e.g., River Survey 2026" />
+          <h2>Metadata Fields</h2>
+          <div id="field-list"></div>
+          <button type="button" class="btn-secondary" id="add-field-btn">Add Field</button>
+          <button type="submit" class="btn-primary" id="save-project-btn">Save Project</button>
+        </form>
+      </div>
+
+      <div class="view" data-view="project-dashboard" id="view-project-dashboard">
+        <h1 id="dashboard-title"></h1>
+        <div id="dashboard-fields" class="field-tags"></div>
+        <div class="dashboard-actions">
+          <button class="btn-primary btn-large" id="scan-btn">Scan Sample</button>
+          <button class="btn-secondary" id="export-btn">Export Data</button>
+        </div>
+        <div id="sample-count"></div>
+        <div id="sample-list"></div>
+        <button class="btn-icon" id="edit-project-btn">Edit</button>
+        <button class="btn-danger" id="delete-project-btn">Delete Project</button>
+      </div>
+
+      <div class="view" data-view="sample-entry" id="view-sample-entry">
+        <div id="scanner-container">
+          <div id="qr-reader"></div>
+          <button class="btn-secondary" id="manual-entry-btn">Enter ID Manually</button>
+        </div>
+        <form id="sample-form" style="display:none">
+          <div class="form-field">
+            <label>Sample ID</label>
+            <p id="display-sample-id" class="readonly-value"></p>
+          </div>
+          <div class="form-field">
+            <label for="sample-datetime">Date / Time</label>
+            <input type="datetime-local" id="sample-datetime" />
+          </div>
+          <div class="form-field" id="gps-display">
+            <label>GPS Location</label>
+            <p id="gps-value"></p>
+          </div>
+          <div id="metadata-fields"></div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" id="cancel-sample-btn">Cancel</button>
+            <button type="submit" class="btn-primary">Save Sample</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="view" data-view="sample-detail" id="view-sample-detail">
+        <button class="btn-icon" id="edit-sample-btn">Edit</button>
+        <div id="sample-detail-content"></div>
+        <button class="btn-danger" id="delete-sample-btn">Delete Sample</button>
+      </div>
+
+      <div class="view" data-view="sample-edit" id="view-sample-edit">
+        <form id="edit-sample-form">
+          <div class="form-field">
+            <label>Sample ID</label>
+            <p id="edit-display-sample-id" class="readonly-value"></p>
+          </div>
+          <div class="form-field">
+            <label for="edit-sample-datetime">Date / Time</label>
+            <input type="datetime-local" id="edit-sample-datetime" />
+          </div>
+          <div class="form-field" id="edit-gps-display">
+            <label>GPS Location</label>
+            <p id="edit-gps-value"></p>
+          </div>
+          <div id="edit-metadata-fields"></div>
+          <button type="submit" class="btn-primary">Save Changes</button>
+        </form>
+      </div>
     </main>
   </div>
 

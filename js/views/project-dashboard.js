@@ -6,7 +6,7 @@ import {
   deleteSample,
   parseProject,
 } from '../db.js';
-import { $, clearElement, showView, showToast, confirmDialog, formatDate } from '../ui.js';
+import { clearElement, showView, showToast, confirmDialog, formatDate } from '../ui.js';
 import { navigate } from '../app.js';
 import { showExportDialog } from './export-dialog.js';
 
@@ -23,7 +23,7 @@ import { showExportDialog } from './export-dialog.js';
  */
 export async function renderProjectDashboard(projectId) {
   const project = await getProject(projectId);
-  const { title, fields } = parseProject(project);
+  const { title, fields } = parseProject(project.content);
   const samples = await getSamplesByProject(projectId);
 
   document.getElementById('dashboard-title').textContent = title;
@@ -81,7 +81,7 @@ export async function renderProjectDashboard(projectId) {
   });
 
   // Wire buttons
-  document.querySelector('.btn-back').onclick = () => navigate('#/');
+  document.querySelector('[data-view="project-dashboard"] .btn-back').onclick = () => navigate('#/');
   document.getElementById('scan-btn').onclick = () => navigate(`#/project/${projectId}/scan`);
   document.getElementById('edit-project-btn').onclick = () =>
     navigate(`#/project/${projectId}/edit`);
@@ -95,6 +95,7 @@ export async function renderProjectDashboard(projectId) {
 
     await Promise.all(samples.map((s) => deleteSample(s.id)));
     await deleteProject(projectId);
+
     showToast('Project deleted');
     navigate('#/');
   };

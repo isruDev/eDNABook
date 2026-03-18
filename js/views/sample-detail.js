@@ -27,7 +27,7 @@ function toDatetimeLocalValue(isoString) {
 export async function renderSampleDetail(sampleId) {
   const sample = await getSample(sampleId);
   const project = await getProject(sample.projectId);
-  const { fields } = parseProject(project);
+  const { fields } = parseProject(project.content);
 
   const content = document.getElementById('sample-detail-content');
   clearElement(content);
@@ -107,7 +107,7 @@ export async function renderSampleDetail(sampleId) {
 export async function renderSampleEdit(sampleId) {
   const sample = await getSample(sampleId);
   const project = await getProject(sample.projectId);
-  const { fields } = parseProject(project);
+  const { fields } = parseProject(project.content);
 
   document.getElementById('edit-display-sample-id').textContent = sample.sampleId;
   document.getElementById('edit-sample-datetime').value = toDatetimeLocalValue(sample.scannedAt);
