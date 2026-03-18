@@ -29,7 +29,9 @@ function toDatetimeLocalValue(date) {
  */
 export async function renderSampleEntry(projectId) {
   const project = await getProject(projectId);
-  const { fields } = parseProject(project);
+  const { fields } = parseProject(project.content);
+
+  showView('sample-entry');
 
   let scannerInstance = null;
 
@@ -51,7 +53,7 @@ export async function renderSampleEntry(projectId) {
     }
   );
 
-  document.querySelector('.btn-back').onclick = async () => {
+  document.querySelector('[data-view="sample-entry"] .btn-back').onclick = async () => {
     if (scannerInstance) await stopScanner(scannerInstance);
     navigate(`#/project/${projectId}`);
   };
@@ -81,7 +83,6 @@ export async function renderSampleEntry(projectId) {
     readerEl.appendChild(submitBtn);
   };
 
-  showView('sample-entry');
 }
 
 /**

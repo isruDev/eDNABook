@@ -51,7 +51,7 @@ export async function startScanner(containerId, onSuccess, onError) {
     if (errorMsg.includes('permission') || errorMsg.includes('denied')) {
       onError('Camera permission denied. Please enable camera access in your browser settings.');
     } else {
-      throw error;
+      onError('Camera unavailable. Use manual entry instead.');
     }
   }
 
