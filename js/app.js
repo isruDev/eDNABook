@@ -104,7 +104,7 @@ export async function onRouteChange() {
     'project-dashboard':  './views/project-dashboard.js',
     'project-scan':       './views/sample-entry.js',
     'sample-detail':      './views/sample-detail.js',
-    'sample-edit':        './views/sample-edit.js',
+    'sample-edit':        './views/sample-detail.js',
   };
 
   const modulePath = VIEW_MODULES[route] ?? VIEW_MODULES['home'];
