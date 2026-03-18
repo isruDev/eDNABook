@@ -36,7 +36,7 @@ function buildProjectCard(project, sampleCount) {
   const heading = createElement('h2', {}, title);
 
   const meta = createElement('p', { className: 'card-meta' },
-    `${fields.length} fields | ${sampleCount} samples`
+    `${fields.length} field${fields.length !== 1 ? 's' : ''} | ${sampleCount} sample${sampleCount !== 1 ? 's' : ''}`
   );
 
   const dateEl = createElement('p', { className: 'card-date' },

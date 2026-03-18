@@ -33,6 +33,14 @@ export async function renderSampleEntry(projectId) {
 
   showView('sample-entry');
 
+  // Reset DOM state from any previous visit
+  const scannerContainer = document.getElementById('scanner-container');
+  if (scannerContainer) scannerContainer.style.display = '';
+  const sampleForm = document.getElementById('sample-form');
+  if (sampleForm) sampleForm.style.display = 'none';
+  const qrReader = document.getElementById('qr-reader');
+  if (qrReader) qrReader.innerHTML = '';
+
   let scannerInstance = null;
 
   const handleSampleId = async (sampleId) => {
@@ -112,6 +120,9 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId) {
       );
       if (proceed) {
         existingId = dup.id;
+      } else {
+        navigate(`#/project/${projectId}`);
+        return;
       }
     }
   }
