@@ -134,31 +134,30 @@ describe('renderProjectDashboard', () => {
     expect(navigate).toHaveBeenCalledWith('#/project/proj-1/edit');
   });
 
-  it('delete button calls confirmDialog and deletes project + samples on confirm', async () => {
-    confirmDialog.mockResolvedValue(true);
+  it('delete button uses tap-to-confirm: first tap enters confirming state', async () => {
+    await renderProjectDashboard('proj-1');
+    const btn = document.getElementById('delete-project-btn');
+    btn.click();
+
+    expect(btn.classList.contains('confirming')).toBe(true);
+    expect(btn.textContent).toBe('Tap again to confirm');
+    expect(deleteProject).not.toHaveBeenCalled();
+  });
+
+  it('delete button: second tap within 5s deletes project + samples', async () => {
     deleteProject.mockResolvedValue(undefined);
     deleteSample.mockResolvedValue(undefined);
 
     await renderProjectDashboard('proj-1');
-    await document.getElementById('delete-project-btn').click();
+    const btn = document.getElementById('delete-project-btn');
 
-    // Allow async confirm to resolve
+    btn.click();
+    await btn.click();
     await new Promise((r) => setTimeout(r, 0));
 
     expect(deleteProject).toHaveBeenCalledWith('proj-1');
     MOCK_SAMPLES.forEach((s) => expect(deleteSample).toHaveBeenCalledWith(s.id));
     expect(navigate).toHaveBeenCalledWith('#/');
-  });
-
-  it('delete does nothing when user cancels confirmation', async () => {
-    confirmDialog.mockResolvedValue(false);
-
-    await renderProjectDashboard('proj-1');
-    document.getElementById('delete-project-btn').click();
-
-    await new Promise((r) => setTimeout(r, 0));
-
-    expect(deleteProject).not.toHaveBeenCalled();
   });
 
   it('clicking sample card navigates to sample detail', async () => {

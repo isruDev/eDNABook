@@ -86,18 +86,30 @@ export async function renderProjectDashboard(projectId) {
   document.getElementById('edit-project-btn').onclick = () =>
     navigate(`#/project/${projectId}/edit`);
 
-  document.getElementById('delete-project-btn').onclick = async () => {
-    const confirmed = await confirmDialog(
-      'Delete project?',
-      'This will permanently delete the project and all its samples.'
-    );
-    if (!confirmed) return;
+  const deleteBtn = document.getElementById('delete-project-btn');
+  let deleteTimeout = null;
 
-    await Promise.all(samples.map((s) => deleteSample(s.id)));
-    await deleteProject(projectId);
+  deleteBtn.onclick = async () => {
+    if (deleteBtn.classList.contains('confirming')) {
+      clearTimeout(deleteTimeout);
+      deleteBtn.classList.remove('confirming');
+      deleteBtn.textContent = 'Delete Project';
 
-    showToast('Project deleted');
-    navigate('#/');
+      await Promise.all(samples.map((s) => deleteSample(s.id)));
+      await deleteProject(projectId);
+
+      showToast('Project deleted');
+      navigate('#/');
+      return;
+    }
+
+    deleteBtn.classList.add('confirming');
+    deleteBtn.textContent = 'Tap again to confirm';
+
+    deleteTimeout = setTimeout(() => {
+      deleteBtn.classList.remove('confirming');
+      deleteBtn.textContent = 'Delete Project';
+    }, 5000);
   };
 
   showView('project-dashboard');

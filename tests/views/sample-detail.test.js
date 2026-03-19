@@ -135,21 +135,24 @@ describe('renderSampleDetail', () => {
     expect(navigate).toHaveBeenCalledWith('#/sample/sample-1/edit');
   });
 
-  it('delete button confirms and deletes sample then navigates to project', async () => {
-    confirmDialog.mockResolvedValue(true);
+  it('delete button uses tap-to-confirm: second tap deletes sample', async () => {
     await renderSampleDetail('sample-1');
-    document.getElementById('delete-sample-btn').click();
+    const btn = document.getElementById('delete-sample-btn');
 
+    btn.click();
+    expect(btn.classList.contains('confirming')).toBe(true);
+
+    await btn.click();
     await new Promise((r) => setTimeout(r, 0));
 
     expect(deleteSample).toHaveBeenCalledWith('sample-1');
     expect(navigate).toHaveBeenCalledWith('#/project/proj-1');
   });
 
-  it('delete does nothing when user cancels', async () => {
-    confirmDialog.mockResolvedValue(false);
+  it('delete button reverts if not confirmed (first tap only)', async () => {
     await renderSampleDetail('sample-1');
-    document.getElementById('delete-sample-btn').click();
+    const btn = document.getElementById('delete-sample-btn');
+    btn.click();
 
     await new Promise((r) => setTimeout(r, 0));
 

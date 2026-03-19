@@ -79,15 +79,28 @@ export async function renderSampleDetail(sampleId) {
   document.getElementById('edit-sample-btn').onclick = () =>
     navigate(`#/sample/${sampleId}/edit`);
 
-  document.getElementById('delete-sample-btn').onclick = async () => {
-    const confirmed = await confirmDialog(
-      `This will permanently delete sample "${sample.sampleId}".`
-    );
-    if (!confirmed) return;
+  const deleteSampleBtn = document.getElementById('delete-sample-btn');
+  let deleteSampleTimeout = null;
 
-    await deleteSample(sampleId);
-    showToast('Sample deleted');
-    navigate(`#/project/${sample.projectId}`);
+  deleteSampleBtn.onclick = async () => {
+    if (deleteSampleBtn.classList.contains('confirming')) {
+      clearTimeout(deleteSampleTimeout);
+      deleteSampleBtn.classList.remove('confirming');
+      deleteSampleBtn.textContent = 'Delete Sample';
+
+      await deleteSample(sampleId);
+      showToast('Sample deleted');
+      navigate(`#/project/${sample.projectId}`);
+      return;
+    }
+
+    deleteSampleBtn.classList.add('confirming');
+    deleteSampleBtn.textContent = 'Tap again to confirm';
+
+    deleteSampleTimeout = setTimeout(() => {
+      deleteSampleBtn.classList.remove('confirming');
+      deleteSampleBtn.textContent = 'Delete Sample';
+    }, 5000);
   };
 
   showView('sample-detail');

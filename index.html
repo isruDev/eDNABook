@@ -41,9 +41,11 @@
       <div class="view" data-view="project-form" id="view-project-form">
         <button class="btn-back" id="form-back-btn">Back</button>
         <form id="project-form">
-          <label for="project-title-input">Project Title</label>
-          <input type="text" id="project-title-input" placeholder="e.g., River Survey 2026" />
-          <h2>Metadata Fields</h2>
+          <div class="form-field">
+            <label for="project-title-input">Project Title</label>
+            <input type="text" id="project-title-input" placeholder="e.g., River Survey 2026" />
+          </div>
+          <h3 class="section-title">Metadata Fields</h3>
           <div id="field-list"></div>
           <button type="button" class="btn-secondary" id="add-field-btn">Add Field</button>
           <button type="submit" class="btn-primary" id="save-project-btn">Save Project</button>
@@ -56,12 +58,14 @@
         <div id="dashboard-fields" class="field-tags"></div>
         <div class="dashboard-actions">
           <button class="btn-primary btn-large" id="scan-btn">Scan Sample</button>
-          <button class="btn-secondary" id="export-btn">Export Data</button>
         </div>
         <div id="sample-count"></div>
         <div id="sample-list"></div>
-        <button class="btn-icon" id="edit-project-btn">Edit</button>
-        <button class="btn-danger" id="delete-project-btn">Delete Project</button>
+        <div class="dashboard-toolbar">
+          <button class="btn-secondary" id="export-btn">Export Data</button>
+          <button class="btn-secondary" id="edit-project-btn">Edit</button>
+          <button class="btn-danger" id="delete-project-btn">Delete Project</button>
+        </div>
       </div>
 
       <div class="view" data-view="sample-entry" id="view-sample-entry">
@@ -93,9 +97,11 @@
 
       <div class="view" data-view="sample-detail" id="view-sample-detail">
         <button class="btn-back">Back</button>
-        <button class="btn-icon" id="edit-sample-btn">Edit</button>
         <div id="sample-detail-content"></div>
-        <button class="btn-danger" id="delete-sample-btn">Delete Sample</button>
+        <div class="detail-toolbar">
+          <button class="btn-secondary" id="edit-sample-btn">Edit</button>
+          <button class="btn-danger" id="delete-sample-btn">Delete Sample</button>
+        </div>
       </div>
 
       <div class="view" data-view="sample-edit" id="view-sample-edit">

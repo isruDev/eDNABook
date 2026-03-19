@@ -2,9 +2,9 @@
 
 /* ---------- Design tokens ---------- */
 :root {
-  --color-primary: #1565c0;
-  --color-primary-dark: #003c8f;
-  --color-primary-light: #5e92f3;
+  --color-primary: #1a5632;
+  --color-primary-dark: #0f3d22;
+  --color-primary-light: #2d7a4a;
   --color-surface: #f5f7fa;
   --color-background: #ffffff;
   --color-border: #dde1e7;
@@ -29,6 +29,49 @@
   --header-height: 56px;
 }
 
+/* ---------- Dark mode tokens ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #2d8a4e;
+    --color-primary-dark: #1a5632;
+    --color-primary-light: #4eba6f;
+    --color-surface: #1e1e2e;
+    --color-background: #141422;
+    --color-border: #2a2a3c;
+    --color-text: #e4e4ef;
+    --color-text-secondary: #9898ac;
+    --color-success: #4caf50;
+    --color-error: #ef5350;
+    --color-warning: #ff9800;
+    --color-warning-bg: #2a2010;
+    --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.2);
+    --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.6);
+  }
+
+  .project-card:active,
+  .sample-card:active {
+    background: #252538;
+  }
+
+  .btn-danger:hover {
+    background: rgba(239, 83, 80, 0.15);
+  }
+
+  .btn-remove-field:hover {
+    background: rgba(239, 83, 80, 0.15);
+    color: var(--color-error);
+    border-color: var(--color-error);
+  }
+
+  #delete-project-btn {
+    border-color: rgba(239, 83, 80, 0.4);
+  }
+
+  #delete-project-btn:hover {
+    background: rgba(239, 83, 80, 0.15);
+  }
+}
+
 /* ---------- Reset ---------- */
 *,
 *::before,
@@ -41,6 +84,7 @@
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  color-scheme: light dark;
 }
 
 body {
@@ -94,11 +138,12 @@ a {
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  background: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-primary);
+  border-bottom: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  justify-content: center;
   padding: 0 var(--spacing-md);
   padding-top: env(safe-area-inset-top, 0px);
 }
@@ -106,20 +151,26 @@ a {
 .app-header h1 {
   font-size: 1.125rem;
   font-weight: 600;
-  flex: 1;
+  text-align: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text);
+  color: #ffffff;
+}
+
+/* Hide the header-level back-btn and action-btn (we use view-level ones now) */
+.app-header .btn-back,
+.app-header .btn-icon {
+  display: none;
 }
 
 /* ---------- View container ---------- */
 .view {
   display: none;
   flex: 1;
-  padding: var(--spacing-md);
-  padding-left: max(var(--spacing-md), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--spacing-md), env(safe-area-inset-right, 0px));
+  padding: 12px;
+  padding-left: max(12px, env(safe-area-inset-left, 0px));
+  padding-right: max(12px, env(safe-area-inset-right, 0px));
   animation: fadeIn 0.12s ease;
 }
 
@@ -147,7 +198,7 @@ a {
   border-radius: var(--radius-md);
   font-weight: 600;
   font-size: 0.9375rem;
-  transition: background 0.12s, opacity 0.12s;
+  transition: background 0.12s, opacity 0.12s, transform 0.08s;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -162,7 +213,8 @@ a {
 }
 
 .btn-primary:active {
-  opacity: 0.85;
+  transform: scale(0.97);
+  opacity: 0.9;
 }
 
 .btn-primary:disabled {
@@ -182,7 +234,8 @@ a {
 }
 
 .btn-secondary:active {
-  opacity: 0.8;
+  transform: scale(0.97);
+  opacity: 0.85;
 }
 
 .btn-danger {
@@ -196,6 +249,7 @@ a {
 }
 
 .btn-danger:active {
+  transform: scale(0.97);
   opacity: 0.8;
 }
 
@@ -206,24 +260,54 @@ a {
   border-radius: var(--radius-lg);
 }
 
-.btn-back {
-  min-height: 44px;
+/* ---------- Back buttons inside views ---------- */
+/* Positioned fixed in the header bar, right side */
+.view .btn-back {
+  position: fixed;
+  top: 0;
+  left: max(var(--spacing-md), calc((100vw - 600px) / 2 + var(--spacing-md)));
+  height: var(--header-height);
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
   padding: 0 var(--spacing-sm);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-primary);
-  border-radius: var(--radius-sm);
-}
-
-.btn-back::before {
-  content: '\2039';
-  font-size: 1.25rem;
+  font-size: 0;
   line-height: 1;
-  margin-right: 2px;
+  color: #ffffff;
+  border-radius: 0;
+  width: auto;
+  min-width: 44px;
+  min-height: var(--header-height);
+  margin-bottom: 0;
 }
 
-.btn-back:hover {
-  background: var(--color-surface);
+.view .btn-back::before {
+  content: '\2190';
+  font-size: 1.125rem;
+  line-height: 1;
+  color: #000000;
+}
+
+.view .btn-back::after {
+  content: 'back';
+  font-size: 0.55rem;
+  font-weight: 500;
+  color: #000000;
+  line-height: 1;
+  margin-top: 1px;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.view .btn-back:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.view .btn-back:active {
+  opacity: 0.7;
 }
 
 .btn-icon {
@@ -239,18 +323,29 @@ a {
   background: var(--color-surface);
 }
 
+.btn-icon:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
 /* ---------- Cards ---------- */
 .project-card,
 .sample-card {
   background: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
   box-shadow: var(--shadow-card);
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.1s, transform 0.08s;
   -webkit-tap-highlight-color: transparent;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 6px;
+}
+
+/* Project card: left accent border */
+.project-card,
+.project-card.card {
+  border-left: 4px solid var(--color-primary);
 }
 
 .project-card:hover,
@@ -260,20 +355,45 @@ a {
 
 .project-card:active,
 .sample-card:active {
+  transform: scale(0.97);
   background: #eaecf0;
 }
 
 .project-card h2 {
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   margin-bottom: var(--spacing-xs);
 }
 
+/* Sample card: strong element for sample ID */
+.sample-card strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Sample card layout */
 .sample-card .sample-id {
   font-family: var(--font-mono);
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.sample-card .sample-date {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-xs);
+  margin-top: 2px;
+}
+
+.sample-card .sample-preview {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin: 0;
 }
 
 .sample-card .sample-meta {
@@ -283,13 +403,13 @@ a {
 
 .card-meta {
   color: var(--color-text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   margin-bottom: var(--spacing-xs);
 }
 
 .card-date {
   color: var(--color-text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   margin: 0;
 }
 
@@ -298,7 +418,8 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-xs);
-  margin-top: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .field-tag {
@@ -311,7 +432,7 @@ a {
   white-space: nowrap;
 }
 
-/* ---------- Forms ---------- */
+/* ---------- Forms (global) ---------- */
 .form-field {
   margin-bottom: var(--spacing-md);
 }
@@ -328,7 +449,8 @@ a {
 .form-field input[type='number'],
 .form-field textarea {
   width: 100%;
-  padding: 10px 12px;
+  height: 44px;
+  padding: 0 12px;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-background);
@@ -336,11 +458,17 @@ a {
   transition: border-color 0.12s;
 }
 
+.form-field textarea {
+  height: auto;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
 .form-field input:focus,
 .form-field textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
+  box-shadow: 0 0 0 3px rgba(26, 86, 50, 0.15);
 }
 
 .readonly-value {
@@ -356,7 +484,7 @@ a {
 
 .form-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--spacing-sm);
   margin-top: var(--spacing-lg);
 }
@@ -364,16 +492,224 @@ a {
 .form-actions .btn-primary,
 .form-actions .btn-secondary,
 .form-actions .btn-danger {
-  flex: 1;
-  min-width: 120px;
+  width: 100%;
 }
 
-/* ---------- Dashboard actions ---------- */
+/* ---------- Error messages ---------- */
+.error-message {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin-top: -6px;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* ---------- Home view ---------- */
+#home-actions {
+  position: fixed;
+  top: 0;
+  left: max(var(--spacing-md), calc((100vw - 600px) / 2 + var(--spacing-md)));
+  height: var(--header-height);
+  z-index: 101;
+  display: flex;
+  align-items: center;
+}
+
+#new-project-btn {
+  width: auto;
+  height: 30px;
+  min-height: 30px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+  background: #ffffff;
+  color: var(--color-primary);
+}
+
+#new-project-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+#new-project-btn:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+/* ---------- Empty state ---------- */
+.empty-state {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: var(--spacing-xl) var(--spacing-md);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  margin-top: var(--spacing-md);
+}
+
+.empty-state p + p {
+  margin-top: var(--spacing-xs);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Dashboard ---------- */
+#dashboard-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+}
+
 .dashboard-actions {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-md);
+}
+
+/* Sample count as section label */
+#sample-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+/* Primary scan button: full-width, large, green */
+#scan-btn {
+  width: 100%;
+  height: 54px;
+  font-size: 1rem;
+  background: var(--color-primary);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+}
+
+#scan-btn:hover {
+  background: var(--color-primary-dark);
+}
+
+#scan-btn:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* Export button: in toolbar, matches secondary style */
+#export-btn {
+  min-height: 40px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  width: auto;
+  padding: 0 var(--spacing-md);
+}
+
+#export-btn:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+#export-btn:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+/* Dashboard bottom toolbar */
+.dashboard-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Edit/Delete project: inline toolbar */
+#edit-project-btn {
+  min-height: 40px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  width: auto;
+  padding: 0 var(--spacing-md);
+}
+
+#edit-project-btn:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+#edit-project-btn:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+/* ---------- Delete project button + countdown animation ---------- */
+@property --countdown-angle {
+  syntax: '<angle>';
+  initial-value: 360deg;
+  inherits: false;
+}
+
+#delete-project-btn {
+  min-height: 40px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-error);
+  background: transparent;
+  border: 1px solid rgba(239, 83, 80, 0.4);
+  border-radius: var(--radius-sm);
+  width: auto;
+  padding: 0 var(--spacing-md);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#delete-project-btn:hover {
+  background: #fdecea;
+}
+
+#delete-project-btn:active {
+  transform: scale(0.97);
+  opacity: 0.8;
+}
+
+#delete-project-btn.confirming {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-error);
+  border-color: transparent;
+}
+
+#delete-project-btn.confirming::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from 90deg, var(--color-error) var(--countdown-angle), transparent var(--countdown-angle));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: borderCountdown 5s linear forwards;
+  pointer-events: none;
+}
+
+@keyframes borderCountdown {
+  from { --countdown-angle: 360deg; }
+  to   { --countdown-angle: 0deg; }
 }
 
 /* ---------- Section headings ---------- */
@@ -387,7 +723,194 @@ a {
   margin-top: var(--spacing-lg);
 }
 
-/* ---------- Scanner ---------- */
+/* ---------- Sample detail view ---------- */
+.detail-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+#edit-sample-btn {
+  min-height: 40px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0 var(--spacing-md);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  width: auto;
+}
+
+/* ---------- Delete sample button + countdown animation ---------- */
+#delete-sample-btn {
+  width: auto;
+  min-height: 40px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0 var(--spacing-md);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#delete-sample-btn.confirming {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-error);
+  border-color: transparent;
+}
+
+#delete-sample-btn.confirming::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from 90deg, var(--color-error) var(--countdown-angle), transparent var(--countdown-angle));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: borderCountdown 5s linear forwards;
+  pointer-events: none;
+}
+
+/* Definition-list style detail rows */
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.detail-row:last-of-type {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-secondary);
+  margin-bottom: 2px;
+}
+
+.detail-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ---------- Project form ---------- */
+#project-form {
+  display: flex;
+  flex-direction: column;
+}
+
+#project-form .section-title {
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* ---------- Project form: field rows ---------- */
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+}
+
+.field-row input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  margin-bottom: 0;
+}
+
+.field-row input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(26, 86, 50, 0.12);
+}
+
+/* Small icon buttons within field rows */
+.btn-move-up,
+.btn-move-down,
+.btn-remove-field {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-move-up:hover,
+.btn-move-down:hover {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-remove-field:hover {
+  background: #fdecea;
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.btn-move-up:active,
+.btn-move-down:active,
+.btn-remove-field:active {
+  transform: scale(0.94);
+  opacity: 0.8;
+}
+
+/* Add field button: full-width secondary */
+#add-field-btn {
+  width: 100%;
+  margin-top: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  border-style: dashed;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: transparent;
+}
+
+#add-field-btn:hover {
+  background: rgba(26, 86, 50, 0.06);
+}
+
+/* Save project button */
+#save-project-btn {
+  width: 100%;
+  margin-top: var(--spacing-sm);
+}
+
+/* ---------- Scanner / sample entry ---------- */
 .scanner-container,
 #scanner-container {
   display: flex;
@@ -411,11 +934,18 @@ a {
   border-radius: var(--radius-md);
 }
 
-/* ---------- Modal ---------- */
+#manual-entry-btn {
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+/* ---------- Modal / export dialog ---------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -423,6 +953,32 @@ a {
   padding: var(--spacing-md);
 }
 
+/* .modal-dialog is the actual card (NOT .modal-content) */
+.modal-dialog {
+  background: var(--color-background);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  max-width: 360px;
+  width: 100%;
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.modal-dialog h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-xs);
+}
+
+.modal-dialog p {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Keep .modal-content working as fallback */
 .modal-content {
   background: var(--color-background);
   border-radius: var(--radius-lg);
@@ -448,8 +1004,32 @@ a {
 }
 
 .modal-content .btn-primary,
-.modal-content .btn-secondary {
+.modal-content .btn-secondary,
+.modal-dialog .btn-primary,
+.modal-dialog .btn-secondary {
   width: 100%;
+}
+
+/* Export dialog button column */
+.modal-btn-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
+}
+
+.modal-btn-row .btn-primary,
+.modal-btn-row .btn-secondary,
+.modal-btn-row .btn-danger {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.export-count {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: var(--spacing-xs);
 }
 
 /* ---------- Toast ---------- */
@@ -458,7 +1038,7 @@ a {
   top: calc(var(--header-height) + 8px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
-  padding: 12px 24px;
+  padding: 12px 20px 12px 16px;
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
   font-weight: 500;
@@ -467,6 +1047,14 @@ a {
   pointer-events: none;
   animation: toastIn 0.18s ease, toastOut 0.3s ease 2.7s forwards;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.toast::before {
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .toast-success,
@@ -475,10 +1063,20 @@ a {
   color: #ffffff;
 }
 
+.toast-success::before,
+.toast.success::before {
+  content: '\2713';
+}
+
 .toast-error,
 .toast.error {
   background: var(--color-error);
   color: #ffffff;
+}
+
+.toast-error::before,
+.toast.error::before {
+  content: '\2715';
 }
 
 .toast-warning,
@@ -486,6 +1084,11 @@ a {
   background: var(--color-warning-bg);
   color: var(--color-warning);
   border: 1px solid var(--color-warning);
+}
+
+.toast-warning::before,
+.toast.warning::before {
+  content: '\26A0';
 }
 
 @keyframes toastIn {
@@ -522,21 +1125,6 @@ a {
   flex-shrink: 0;
 }
 
-/* ---------- Empty state ---------- */
-.empty-state {
-  text-align: center;
-  color: var(--color-text-secondary);
-  padding: var(--spacing-xl) var(--spacing-md);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 0.9375rem;
-}
-
-.empty-state p + p {
-  margin-top: var(--spacing-xs);
-  font-size: 0.8125rem;
-}
-
 /* ---------- Stats / summary row ---------- */
 .stats-row {
   display: flex;
@@ -564,27 +1152,6 @@ a {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   font-style: italic;
-}
-
-/* ---------- Error messages ---------- */
-.error-message {
-  color: var(--color-error);
-  font-size: 0.875rem;
-  margin-top: -8px;
-  margin-bottom: var(--spacing-sm);
-}
-
-/* ---------- Field row (label + inline button) ---------- */
-.field-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-}
-
-.field-row input {
-  flex: 1;
-  margin-bottom: 0;
 }
 
 /* ---------- Accessibility ---------- */
