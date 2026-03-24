@@ -7,3 +7,5 @@ Thumbs.db
 docs/superpowers/
 WORKPLAN.md
 .claude/
+.playwright-mcp/
+test-results/
