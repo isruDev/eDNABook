@@ -1,5 +1,7 @@
 import { initDB } from './db.js';
 import { showToast } from './ui.js';
+import { startGpsWatch } from './gps.js';
+import { initGpsPill } from './gps-pill.js';
 
 /**
  * @typedef {{ route: string, params: Record<string, string> }} ParsedRoute
@@ -159,6 +161,8 @@ export async function init() {
   }
 
   await initDB();
+  startGpsWatch();
+  initGpsPill();
   window.addEventListener('hashchange', onRouteChange);
   await onRouteChange();
 }

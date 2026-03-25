@@ -40,11 +40,17 @@ vi.mock('../../js/gps.js', () => ({
   getCurrentPosition: vi.fn(),
 }));
 
+vi.mock('../../js/photo.js', () => ({
+  capturePhoto: vi.fn(),
+  savePhotoToDevice: vi.fn(),
+}));
+
 import { getProject, parseProject, getSampleBySampleId, createSample, updateSample } from '../../js/db.js';
 import { showView, showToast, confirmDialog, vibrate } from '../../js/ui.js';
 import { navigate } from '../../js/app.js';
 import { startScanner, stopScanner } from '../../js/scanner.js';
 import { getCurrentPosition } from '../../js/gps.js';
+import { capturePhoto, savePhotoToDevice } from '../../js/photo.js';
 import { renderSampleEntry, renderEntryForm } from '../../js/views/sample-entry.js';
 
 const MOCK_PROJECT = {
@@ -97,6 +103,8 @@ beforeEach(() => {
   startScanner.mockResolvedValue({ getState: () => 2 });
   stopScanner.mockResolvedValue(undefined);
   getCurrentPosition.mockResolvedValue({ latitude: 47.6, longitude: -122.3, accuracy: 8 });
+  capturePhoto.mockResolvedValue(null);
+  savePhotoToDevice.mockResolvedValue(undefined);
 });
 
 describe('renderSampleEntry', () => {
@@ -114,7 +122,83 @@ describe('renderSampleEntry', () => {
     await renderSampleEntry('proj-1');
     document.getElementById('manual-entry-btn').click();
     await new Promise((r) => setTimeout(r, 0));
-    // form is shown after manual input -- prompt shown via confirmDialog substitute
+  });
+});
+
+describe('photo prompt after scan', () => {
+  it('shows photo prompt after handleSampleId is called', async () => {
+    await renderSampleEntry('proj-1');
+    const onSuccess = startScanner.mock.calls[0][1];
+    await onSuccess('S-100');
+    await new Promise((r) => setTimeout(r, 0));
+
+    const prompt = document.getElementById('photo-prompt');
+    expect(prompt).not.toBeNull();
+    expect(prompt.textContent).toContain('photo');
+  });
+
+  it('skip button proceeds to entry form without photo', async () => {
+    await renderSampleEntry('proj-1');
+    const onSuccess = startScanner.mock.calls[0][1];
+    await onSuccess('S-100');
+    await new Promise((r) => setTimeout(r, 0));
+
+    document.getElementById('skip-photo-btn').click();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(document.getElementById('photo-prompt')).toBeNull();
+    expect(document.getElementById('sample-form').style.display).not.toBe('none');
+  });
+
+  it('take photo button calls capturePhoto and shows filename in form', async () => {
+    const mockFile = new File(['data'], 'River_Study_S-100.jpg', { type: 'image/jpeg' });
+    capturePhoto.mockResolvedValue(mockFile);
+
+    await renderSampleEntry('proj-1');
+    const onSuccess = startScanner.mock.calls[0][1];
+    await onSuccess('S-100');
+    await new Promise((r) => setTimeout(r, 0));
+
+    document.getElementById('take-photo-btn').click();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(capturePhoto).toHaveBeenCalledWith('River Study', 'S-100');
+    const photoSection = document.getElementById('photo-section');
+    expect(photoSection.textContent).toContain('River_Study_S-100.jpg');
+  });
+
+  it('shows Add Photo button in form when photo was skipped', async () => {
+    await renderSampleEntry('proj-1');
+    const onSuccess = startScanner.mock.calls[0][1];
+    await onSuccess('S-100');
+    await new Promise((r) => setTimeout(r, 0));
+
+    document.getElementById('skip-photo-btn').click();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(document.getElementById('add-photo-btn')).not.toBeNull();
+  });
+
+  it('saves photo to device and stores filename on form submit', async () => {
+    const mockFile = new File(['data'], 'River_Study_S-100.jpg', { type: 'image/jpeg' });
+    capturePhoto.mockResolvedValue(mockFile);
+
+    await renderSampleEntry('proj-1');
+    const onSuccess = startScanner.mock.calls[0][1];
+    await onSuccess('S-100');
+    await new Promise((r) => setTimeout(r, 0));
+
+    document.getElementById('take-photo-btn').click();
+    await new Promise((r) => setTimeout(r, 0));
+
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(savePhotoToDevice).toHaveBeenCalledWith(mockFile);
+    expect(createSample).toHaveBeenCalledWith(
+      'proj-1',
+      expect.objectContaining({ photoFilename: 'River_Study_S-100.jpg' })
+    );
   });
 });
 

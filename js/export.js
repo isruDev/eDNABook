@@ -34,7 +34,7 @@ function toSnakeCase(name) {
  * @returns {string[]} Fixed column headers: Sample ID, Date/Time, Latitude, Longitude, GPS Accuracy.
  */
 function fixedHeaders() {
-  return ['Sample ID', 'Date/Time', 'Latitude', 'Longitude', 'GPS Accuracy'];
+  return ['Project Name', 'Sample ID', 'Date/Time', 'Latitude', 'Longitude', 'GPS Accuracy', 'Photo'];
 }
 
 /**
@@ -44,13 +44,15 @@ function fixedHeaders() {
  * @param {string[]} fields - Project-specific field names from parseProject().
  * @returns {Array<string|number|null>} Ordered array of values matching the column layout.
  */
-function sampleToRow(sample, fields) {
+function sampleToRow(sample, fields, projectTitle) {
   const fixed = [
+    projectTitle,
     sample.sampleId,
     sample.scannedAt,
     sample.latitude ?? null,
     sample.longitude ?? null,
     sample.gpsAccuracy ?? null,
+    sample.photoFilename ?? '',
   ];
   const meta = fields.map((f) => (sample.metadata ?? {})[f] ?? '');
   return [...fixed, ...meta];
@@ -72,9 +74,9 @@ function sampleToRow(sample, fields) {
  * shareOrDownload(csv, 'export.csv', 'text/csv');
  */
 export function generateCSV(project, samples) {
-  const { fields } = parseProject(project.content);
+  const { title, fields } = parseProject(project.content);
   const headers = [...fixedHeaders(), ...fields];
-  const dataRows = samples.map((s) => sampleToRow(s, fields));
+  const dataRows = samples.map((s) => sampleToRow(s, fields, title));
 
   return Papa.unparse([headers, ...dataRows]);
 }
@@ -99,17 +101,19 @@ export function generateCSV(project, samples) {
  * const bytes = await generateSQLite(project, samples);
  * shareOrDownload(bytes, 'export.db', 'application/x-sqlite3');
  */
-export async function generateSQLite(project, samples, locateFile = () => '../lib/sql-wasm.wasm') {
-  const { fields } = parseProject(project.content);
+export async function generateSQLite(project, samples, locateFile = () => './lib/sql-wasm.wasm') {
+  const { title, fields } = parseProject(project.content);
   const allHeaders = [...fixedHeaders(), ...fields];
 
   /** @type {Record<string, 'TEXT'|'REAL'>} */
   const colTypes = {
+    'Project Name': 'TEXT',
     'Sample ID': 'TEXT',
     'Date/Time': 'TEXT',
     'Latitude': 'REAL',
     'Longitude': 'REAL',
     'GPS Accuracy': 'REAL',
+    'Photo': 'TEXT',
   };
   fields.forEach((f) => { colTypes[f] = 'TEXT'; });
 
@@ -130,7 +134,7 @@ export async function generateSQLite(project, samples, locateFile = () => '../li
     const stmt = db.prepare(`INSERT INTO samples VALUES (${placeholders})`);
 
     for (const sample of samples) {
-      stmt.run(sampleToRow(sample, fields));
+      stmt.run(sampleToRow(sample, fields, title));
     }
     stmt.free();
   }

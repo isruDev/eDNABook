@@ -23,9 +23,15 @@ vi.mock('../../js/app.js', () => ({
   navigate: vi.fn(),
 }));
 
+vi.mock('../../js/photo.js', () => ({
+  capturePhoto: vi.fn(),
+  savePhotoToDevice: vi.fn(),
+}));
+
 import { getSample, getProject, parseProject, updateSample, deleteSample } from '../../js/db.js';
 import { showView, showToast, confirmDialog, vibrate } from '../../js/ui.js';
 import { navigate } from '../../js/app.js';
+import { capturePhoto, savePhotoToDevice } from '../../js/photo.js';
 import { renderSampleDetail, renderSampleEdit } from '../../js/views/sample-detail.js';
 
 const MOCK_PROJECT = { id: 'proj-1', content: 'River Study\nSite\nCollector' };
@@ -87,6 +93,8 @@ beforeEach(() => {
   parseProject.mockReturnValue(MOCK_PARSED);
   updateSample.mockResolvedValue(undefined);
   deleteSample.mockResolvedValue(undefined);
+  capturePhoto.mockResolvedValue(null);
+  savePhotoToDevice.mockResolvedValue(undefined);
 });
 
 describe('renderSampleDetail', () => {
@@ -147,6 +155,26 @@ describe('renderSampleDetail', () => {
 
     expect(deleteSample).toHaveBeenCalledWith('sample-1');
     expect(navigate).toHaveBeenCalledWith('#/project/proj-1');
+  });
+
+  it('shows photo filename when sample has photoFilename', async () => {
+    getSample.mockResolvedValue({ ...MOCK_SAMPLE, photoFilename: 'River_Study_S-001.jpg' });
+    await renderSampleDetail('sample-1');
+    const content = document.getElementById('sample-detail-content').textContent;
+    expect(content).toContain('River_Study_S-001.jpg');
+  });
+
+  it('shows Retake Photo button when sample has photoFilename', async () => {
+    getSample.mockResolvedValue({ ...MOCK_SAMPLE, photoFilename: 'River_Study_S-001.jpg' });
+    await renderSampleDetail('sample-1');
+    const retakeBtn = document.getElementById('retake-photo-detail-btn');
+    expect(retakeBtn).not.toBeNull();
+  });
+
+  it('shows Add Photo button when sample has no photoFilename', async () => {
+    await renderSampleDetail('sample-1');
+    const addBtn = document.getElementById('add-photo-detail-btn');
+    expect(addBtn).not.toBeNull();
   });
 
   it('delete button reverts if not confirmed (first tap only)', async () => {

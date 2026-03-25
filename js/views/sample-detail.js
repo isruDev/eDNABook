@@ -2,6 +2,7 @@
 import { getSample, getProject, parseProject, updateSample, deleteSample } from '../db.js';
 import { showView, showToast, confirmDialog, vibrate, clearElement, formatDate } from '../ui.js';
 import { navigate } from '../app.js';
+import { capturePhoto, savePhotoToDevice } from '../photo.js';
 
 /**
  * Formats a datetime string for a datetime-local input (YYYY-MM-DDTHH:MM).
@@ -71,6 +72,44 @@ export async function renderSampleDetail(sampleId) {
   fields.forEach((field) => {
     addRow(field, (sample.metadata || {})[field] || '');
   });
+
+  // Photo row
+  if (sample.photoFilename) {
+    addRow('Photo', sample.photoFilename);
+    const retakeBtn = document.createElement('button');
+    retakeBtn.type = 'button';
+    retakeBtn.className = 'btn-secondary';
+    retakeBtn.id = 'retake-photo-detail-btn';
+    retakeBtn.textContent = 'Retake Photo';
+    retakeBtn.onclick = async () => {
+      const { title } = parseProject(project.content);
+      const file = await capturePhoto(title, sample.sampleId);
+      if (file) {
+        await savePhotoToDevice(file);
+        await updateSample(sampleId, { photoFilename: file.name });
+        showToast('Photo retaken');
+        await renderSampleDetail(sampleId);
+      }
+    };
+    content.appendChild(retakeBtn);
+  } else {
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'btn-secondary';
+    addBtn.id = 'add-photo-detail-btn';
+    addBtn.textContent = 'Add Photo';
+    addBtn.onclick = async () => {
+      const { title } = parseProject(project.content);
+      const file = await capturePhoto(title, sample.sampleId);
+      if (file) {
+        await savePhotoToDevice(file);
+        await updateSample(sampleId, { photoFilename: file.name });
+        showToast('Photo added');
+        await renderSampleDetail(sampleId);
+      }
+    };
+    content.appendChild(addBtn);
+  }
 
   const detailView = document.querySelector('[data-view="sample-detail"]');
   detailView.querySelector('.btn-back').onclick = () =>

@@ -2,6 +2,7 @@
 import { getProject, getSamplesByProject, parseProject } from '../db.js';
 import { showToast } from '../ui.js';
 import { generateCSV, generateSQLite, shareOrDownload } from '../export.js';
+import { sanitizeFilename } from '../util.js';
 
 /**
  * Formats today's date as YYYY-MM-DD for use in export filenames.
@@ -12,21 +13,6 @@ function todayString() {
   return new Date().toISOString().slice(0, 10);
 }
 
-/**
- * Sanitizes a project title for use in a filename by replacing whitespace and
- * non-alphanumeric characters with underscores and collapsing consecutive
- * underscores.
- *
- * @param {string} title - Raw project title string.
- * @returns {string} Filename-safe version of the title.
- * @example
- * safeTitle('River Study 2026!'); // "River_Study_2026"
- */
-function safeTitle(title) {
-  return title
-    .replace(/[^a-zA-Z0-9]+/g, '_')
-    .replace(/^_|_$/g, '');
-}
 
 /**
  * Displays a modal dialog that allows the user to export a project's samples
@@ -49,7 +35,7 @@ export async function showExportDialog(projectId) {
   const samples = await getSamplesByProject(projectId);
   const { title } = parseProject(project.content);
 
-  const filename = `${safeTitle(title)}_${todayString()}`;
+  const filename = `${sanitizeFilename(title)}_${todayString()}`;
 
   // ---- Build modal DOM ----
 
