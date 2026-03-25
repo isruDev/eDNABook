@@ -70,6 +70,30 @@
   #delete-project-btn:hover {
     background: rgba(239, 83, 80, 0.15);
   }
+
+  .gps-pill {
+    background: #2d2d2d;
+    color: #9ca3af;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .gps-locking {
+    background: #2d2d2d;
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+
+  .gps-locked {
+    background: #14532d;
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.2);
+  }
+
+  .gps-error {
+    background: #2d2d2d;
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
 }
 
 /* ---------- Reset ---------- */
@@ -1175,6 +1199,91 @@ a {
     font-size: 1rem;
     height: 52px;
   }
+}
+
+/* ---------- Photo Prompt ---------- */
+.photo-prompt {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.photo-prompt p {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.photo-prompt-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.photo-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ---------- GPS Pill ---------- */
+.gps-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px auto 0;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  width: fit-content;
+  transition: opacity 0.5s ease;
+  background: #e5e7eb;
+  color: #374151;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gps-pill-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gps-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.gps-locking .gps-dot {
+  background: #f59e0b;
+  animation: gps-pulse 1.5s infinite;
+}
+
+.gps-locking {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.gps-locked .gps-dot {
+  background: #22c55e;
+}
+
+.gps-locked {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.gps-error .gps-dot {
+  background: #ef4444;
+}
+
+.gps-error {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+@keyframes gps-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 /* ---------- Responsive: landscape / constrain ---------- */

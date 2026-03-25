@@ -56,6 +56,7 @@ const MOCK_SAMPLES = [
     longitude: -122.3321,
     gpsAccuracy: 5,
     metadata: { Site: 'River A', Collector: 'Jane' },
+    photoFilename: 'River_Study_S-001.jpg',
     createdAt: '2026-01-15T09:30:00',
     updatedAt: '2026-01-15T09:30:00',
   },
@@ -68,6 +69,7 @@ const MOCK_SAMPLES = [
     longitude: null,
     gpsAccuracy: null,
     metadata: { Site: 'Lake B', Collector: 'Bob' },
+    photoFilename: null,
     createdAt: '2026-01-16T10:00:00',
     updatedAt: '2026-01-16T10:00:00',
   },
@@ -83,18 +85,19 @@ describe('generateCSV', () => {
   });
 
   it('calls Papa.unparse with correct column headers', () => {
-    Papa.unparse.mockReturnValue('Sample ID,Date/Time,Latitude,Longitude,GPS Accuracy,Site,Collector\n');
+    Papa.unparse.mockReturnValue('csv');
     generateCSV(MOCK_PROJECT, MOCK_SAMPLES);
 
     expect(Papa.unparse).toHaveBeenCalledOnce();
     const callArg = Papa.unparse.mock.calls[0][0];
-    // First element is the header row
     expect(callArg[0]).toEqual([
+      'Project Name',
       'Sample ID',
       'Date/Time',
       'Latitude',
       'Longitude',
       'GPS Accuracy',
+      'Photo',
       'Site',
       'Collector',
     ]);
@@ -105,26 +108,28 @@ describe('generateCSV', () => {
     generateCSV(MOCK_PROJECT, MOCK_SAMPLES);
 
     const rows = Papa.unparse.mock.calls[0][0];
-    // rows[0] = headers, rows[1] = first sample
     const firstData = rows[1];
-    expect(firstData[0]).toBe('S-001');                 // Sample ID
-    expect(firstData[1]).toBe('2026-01-15T09:30:00');  // Date/Time
-    expect(firstData[2]).toBe(47.6062);                // Latitude
-    expect(firstData[3]).toBe(-122.3321);              // Longitude
-    expect(firstData[4]).toBe(5);                      // GPS Accuracy
-    expect(firstData[5]).toBe('River A');              // Site
-    expect(firstData[6]).toBe('Jane');                 // Collector
+    expect(firstData[0]).toBe('River Study');              // Project Name
+    expect(firstData[1]).toBe('S-001');                    // Sample ID
+    expect(firstData[2]).toBe('2026-01-15T09:30:00');     // Date/Time
+    expect(firstData[3]).toBe(47.6062);                   // Latitude
+    expect(firstData[4]).toBe(-122.3321);                 // Longitude
+    expect(firstData[5]).toBe(5);                         // GPS Accuracy
+    expect(firstData[6]).toBe('River_Study_S-001.jpg');   // Photo
+    expect(firstData[7]).toBe('River A');                  // Site
+    expect(firstData[8]).toBe('Jane');                     // Collector
   });
 
-  it('uses null for missing GPS fields', () => {
+  it('uses null for missing GPS fields and empty photo', () => {
     Papa.unparse.mockReturnValue('csv-output');
     generateCSV(MOCK_PROJECT, MOCK_SAMPLES);
 
     const rows = Papa.unparse.mock.calls[0][0];
-    const secondData = rows[2]; // second sample (index 2 because index 0 is headers)
-    expect(secondData[2]).toBeNull(); // Latitude
-    expect(secondData[3]).toBeNull(); // Longitude
-    expect(secondData[4]).toBeNull(); // GPS Accuracy
+    const secondData = rows[2];
+    expect(secondData[3]).toBeNull(); // Latitude
+    expect(secondData[4]).toBeNull(); // Longitude
+    expect(secondData[5]).toBeNull(); // GPS Accuracy
+    expect(secondData[6]).toBe('');   // Photo (no photo)
   });
 
   it('handles project fields with special characters in metadata keys', () => {
@@ -148,8 +153,8 @@ describe('generateCSV', () => {
     expect(rows[0]).toContain('Field Name (Units)');
     expect(rows[0]).toContain('Another/Field');
     const dataRow = rows[1];
-    expect(dataRow[5]).toBe('42');
-    expect(dataRow[6]).toBe('value');
+    expect(dataRow[7]).toBe('42');
+    expect(dataRow[8]).toBe('value');
   });
 
   it('returns the string from Papa.unparse', () => {
@@ -198,11 +203,13 @@ describe('generateSQLite', () => {
     const [res] = db.exec('PRAGMA table_info(samples)');
     const colNames = res.values.map((row) => row[1]);
 
+    expect(colNames[0]).toBe('project_name');
     expect(colNames).toContain('sample_id');
     expect(colNames).toContain('date_time');
     expect(colNames).toContain('latitude');
     expect(colNames).toContain('longitude');
     expect(colNames).toContain('gps_accuracy');
+    expect(colNames).toContain('photo');
     expect(colNames).toContain('site');
     expect(colNames).toContain('collector');
     db.close();

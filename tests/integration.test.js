@@ -238,11 +238,11 @@ describe('integration: export generates CSV from saved samples', () => {
     expect(headers).toContain('Collector');
     expect(headers).toContain('Site');
 
-    // Verify data row maps correctly
+    // Verify data row maps correctly (index 0 = Project Name, 1 = Sample ID, ...)
     const dataRow = callArg[1];
-    expect(dataRow[0]).toBe('EXP-001');
-    expect(dataRow[2]).toBe(51.5074);
-    expect(dataRow[3]).toBe(-0.1278);
+    expect(dataRow[1]).toBe('EXP-001');
+    expect(dataRow[3]).toBe(51.5074);
+    expect(dataRow[4]).toBe(-0.1278);
 
     expect(typeof csv).toBe('string');
     expect(csv.length).toBeGreaterThan(0);
@@ -290,9 +290,9 @@ describe('integration: export generates CSV from saved samples', () => {
 
     const callArg = Papa.unparse.mock.calls[0][0];
     const dataRow = callArg[1];
-    expect(dataRow[2]).toBeNull(); // Latitude
-    expect(dataRow[3]).toBeNull(); // Longitude
-    expect(dataRow[4]).toBeNull(); // GPS Accuracy
+    expect(dataRow[3]).toBeNull(); // Latitude
+    expect(dataRow[4]).toBeNull(); // Longitude
+    expect(dataRow[5]).toBeNull(); // GPS Accuracy
 
     db.close();
   });
