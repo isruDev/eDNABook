@@ -1,11 +1,14 @@
 // Html5Qrcode loaded via <script> tag in index.html (UMD, sets window.Html5Qrcode)
 // In test env, vitest alias provides it as an ESM import
 let Html5Qrcode;
+let Html5QrcodeSupportedFormats;
 if (typeof window !== 'undefined' && window.Html5Qrcode) {
   Html5Qrcode = window.Html5Qrcode;
+  Html5QrcodeSupportedFormats = window.Html5QrcodeSupportedFormats;
 } else {
   const mod = await import('../lib/html5-qrcode.min.js');
   Html5Qrcode = mod.Html5Qrcode;
+  Html5QrcodeSupportedFormats = mod.Html5QrcodeSupportedFormats;
 }
 
 const SCANNING_STATE = 2;
@@ -30,7 +33,17 @@ const SCANNING_STATE = 2;
  * );
  */
 export async function startScanner(containerId, onSuccess, onError) {
-  const scanner = new Html5Qrcode(containerId);
+  const scanner = new Html5Qrcode(containerId, {
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+    ],
+  });
 
   const handleSuccess = async (decodedText) => {
     onSuccess(decodedText);

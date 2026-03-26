@@ -57,7 +57,7 @@ const MOCK_PROJECT = {
   id: 'proj-1',
   content: 'River Study\nSite\nCollector\nWeather',
 };
-const MOCK_PARSED = { title: 'River Study', fields: ['Site', 'Collector', 'Weather'] };
+const MOCK_PARSED = { title: 'River Study', fields: [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }, { name: 'Weather', type: 'text' }] };
 
 function buildDOM() {
   document.body.innerHTML = `
@@ -205,27 +205,27 @@ describe('photo prompt after scan', () => {
 describe('renderEntryForm', () => {
   it('displays sample ID as read-only', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', ['Site', 'Collector'], 'S-100');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }], 'S-100');
     expect(document.getElementById('display-sample-id').textContent).toBe('S-100');
   });
 
   it('pre-populates datetime to approximately now', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', ['Site', 'Collector'], 'S-100');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }], 'S-100');
     const dtInput = document.getElementById('sample-datetime');
     expect(dtInput.value).not.toBe('');
   });
 
   it('renders an input for each metadata field', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', ['Site', 'Collector', 'Weather'], 'S-100');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }, { name: 'Weather', type: 'text' }], 'S-100');
     const inputs = document.querySelectorAll('#metadata-fields input');
     expect(inputs).toHaveLength(3);
   });
 
   it('shows GPS coordinates when location is available', async () => {
     getCurrentPosition.mockResolvedValue({ latitude: 47.6, longitude: -122.3, accuracy: 8 });
-    await renderEntryForm('proj-1', ['Site'], 'S-100');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
     const gpsText = document.getElementById('gps-value').textContent;
     expect(gpsText).toContain('47.6');
     expect(gpsText).toContain('-122.3');
@@ -233,14 +233,14 @@ describe('renderEntryForm', () => {
 
   it('shows warning text when GPS is unavailable', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', ['Site'], 'S-100');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
     const gpsText = document.getElementById('gps-value').textContent.toLowerCase();
     expect(gpsText).toContain('unavailable');
   });
 
   it('saves a new sample on form submit', async () => {
     getCurrentPosition.mockResolvedValue({ latitude: 47.6, longitude: -122.3, accuracy: 8 });
-    await renderEntryForm('proj-1', ['Site', 'Collector'], 'S-100');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }], 'S-100');
 
     document.querySelectorAll('#metadata-fields input')[0].value = 'River A';
     document.querySelectorAll('#metadata-fields input')[1].value = 'Jane';
@@ -265,7 +265,7 @@ describe('renderEntryForm', () => {
   it('calls updateSample when existingId is provided', async () => {
     getCurrentPosition.mockResolvedValue(null);
     updateSample.mockResolvedValue(undefined);
-    await renderEntryForm('proj-1', ['Site'], 'S-100', 'existing-s1');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100', 'existing-s1');
 
     document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 0));
@@ -278,14 +278,14 @@ describe('renderEntryForm', () => {
     confirmDialog.mockResolvedValue(false);
     getCurrentPosition.mockResolvedValue(null);
 
-    await renderEntryForm('proj-1', ['Site'], 'S-DUP');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-DUP');
 
     expect(confirmDialog).toHaveBeenCalled();
   });
 
   it('cancel button navigates to project dashboard', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', ['Site'], 'S-100');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
     document.getElementById('cancel-sample-btn').click();
     expect(navigate).toHaveBeenCalledWith('#/project/proj-1');
   });

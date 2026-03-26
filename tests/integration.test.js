@@ -60,7 +60,11 @@ describe('integration: create project and retrieve from DB', () => {
     const { title, fields } = parseProject(fetched.content);
 
     expect(title).toBe('Lake Monitoring');
-    expect(fields).toEqual(['Collector', 'Site', 'Water Temp']);
+    expect(fields).toEqual([
+      { name: 'Collector', type: 'text' },
+      { name: 'Site', type: 'text' },
+      { name: 'Water Temp', type: 'text' },
+    ]);
 
     db.close();
   });

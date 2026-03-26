@@ -19,11 +19,11 @@ afterEach(() => {
 });
 
 describe('initGpsPill', () => {
-  it('creates a #gps-pill element after the header', () => {
+  it('creates a #gps-pill element inside the header', () => {
     initGpsPill();
     const pill = document.getElementById('gps-pill');
     expect(pill).not.toBeNull();
-    expect(pill.previousElementSibling.id).toBe('app-header');
+    expect(pill.parentElement.id).toBe('app-header');
   });
 
   it('starts hidden', () => {

@@ -34,7 +34,7 @@ export async function renderProjectDashboard(projectId) {
   fields.forEach((field) => {
     const tag = document.createElement('span');
     tag.className = 'field-tag';
-    tag.textContent = field;
+    tag.textContent = field.name;
     fieldsContainer.appendChild(tag);
   });
 

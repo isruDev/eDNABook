@@ -25,9 +25,29 @@ describe('parseProject', () => {
     expect(result.title).toBe('River Survey 2026');
   });
 
-  it('extracts fields from remaining lines', () => {
+  it('returns typed field objects for plain fields', () => {
     const result = parseProject('Survey\nCollector\nSite\nDepth');
-    expect(result.fields).toEqual(['Collector', 'Site', 'Depth']);
+    expect(result.fields).toEqual([
+      { name: 'Collector', type: 'text' },
+      { name: 'Site', type: 'text' },
+      { name: 'Depth', type: 'text' },
+    ]);
+  });
+
+  it('parses [checkbox] prefix into checkbox type', () => {
+    const result = parseProject('My Project\n[checkbox]Waders Cleaned\nSite');
+    expect(result.fields).toEqual([
+      { name: 'Waders Cleaned', type: 'checkbox' },
+      { name: 'Site', type: 'text' },
+    ]);
+  });
+
+  it('handles mixed text and checkbox fields', () => {
+    const result = parseProject('Study\nCollector\n[checkbox]Blank Used\npH');
+    expect(result.fields).toHaveLength(3);
+    expect(result.fields[0]).toEqual({ name: 'Collector', type: 'text' });
+    expect(result.fields[1]).toEqual({ name: 'Blank Used', type: 'checkbox' });
+    expect(result.fields[2]).toEqual({ name: 'pH', type: 'text' });
   });
 
   it('returns empty fields array when only title is present', () => {
@@ -38,12 +58,18 @@ describe('parseProject', () => {
   it('trims whitespace from title and fields', () => {
     const result = parseProject('  River Survey  \n  Collector  \n  Site  ');
     expect(result.title).toBe('River Survey');
-    expect(result.fields).toEqual(['Collector', 'Site']);
+    expect(result.fields).toEqual([
+      { name: 'Collector', type: 'text' },
+      { name: 'Site', type: 'text' },
+    ]);
   });
 
   it('filters out empty lines between fields', () => {
     const result = parseProject('Survey\nCollector\n\nSite\n\n');
-    expect(result.fields).toEqual(['Collector', 'Site']);
+    expect(result.fields).toEqual([
+      { name: 'Collector', type: 'text' },
+      { name: 'Site', type: 'text' },
+    ]);
   });
 
   it('returns empty title and fields for empty content', () => {

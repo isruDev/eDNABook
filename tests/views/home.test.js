@@ -4,6 +4,17 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 vi.mock('../../js/db.js', () => ({
   getAllProjects: vi.fn(),
   getSamplesByProject: vi.fn(),
+  createProject: vi.fn(),
+  parseProject: vi.fn((content) => {
+    const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length === 0) return { title: '', fields: [] };
+    const [title, ...rawFields] = lines;
+    const fields = rawFields.map(l => {
+      if (l.startsWith('[checkbox]')) return { name: l.slice(10), type: 'checkbox' };
+      return { name: l, type: 'text' };
+    });
+    return { title, fields };
+  }),
 }));
 
 // Mock the ui module
@@ -32,7 +43,7 @@ vi.mock('../../js/app.js', () => ({
   navigate: vi.fn(),
 }));
 
-import { getAllProjects, getSamplesByProject } from '../../js/db.js';
+import { getAllProjects, getSamplesByProject, createProject } from '../../js/db.js';
 import { navigate } from '../../js/app.js';
 import { showView } from '../../js/ui.js';
 import { renderHome } from '../../js/views/home.js';
@@ -158,5 +169,26 @@ describe('renderHome', () => {
     const btn = document.getElementById('new-project-btn');
     btn.click();
     expect(navigate).toHaveBeenCalledWith('#/project/new');
+  });
+
+  it('renders template buttons on home screen', async () => {
+    getAllProjects.mockResolvedValue([]);
+    await renderHome();
+    const templateBtn = document.querySelector('.header-template-btn');
+    expect(templateBtn).not.toBeNull();
+    expect(templateBtn.textContent).toContain('Sample Project');
+  });
+
+  it('clicking template button creates project and navigates to dashboard', async () => {
+    getAllProjects.mockResolvedValue([]);
+    createProject.mockResolvedValue({ id: 'new-proj-1' });
+    await renderHome();
+
+    const templateBtn = document.querySelector('.header-template-btn');
+    templateBtn.click();
+    await new Promise(r => setTimeout(r, 0));
+
+    expect(createProject).toHaveBeenCalledWith(expect.stringContaining('Sample Project'));
+    expect(navigate).toHaveBeenCalledWith('#/project/new-proj-1');
   });
 });

@@ -54,7 +54,7 @@ function sampleToRow(sample, fields, projectTitle) {
     sample.gpsAccuracy ?? null,
     sample.photoFilename ?? '',
   ];
-  const meta = fields.map((f) => (sample.metadata ?? {})[f] ?? '');
+  const meta = fields.map((f) => (sample.metadata ?? {})[f.name] ?? '');
   return [...fixed, ...meta];
 }
 
@@ -75,7 +75,7 @@ function sampleToRow(sample, fields, projectTitle) {
  */
 export function generateCSV(project, samples) {
   const { title, fields } = parseProject(project.content);
-  const headers = [...fixedHeaders(), ...fields];
+  const headers = [...fixedHeaders(), ...fields.map(f => f.name)];
   const dataRows = samples.map((s) => sampleToRow(s, fields, title));
 
   return Papa.unparse([headers, ...dataRows]);
@@ -103,7 +103,7 @@ export function generateCSV(project, samples) {
  */
 export async function generateSQLite(project, samples, locateFile = () => './lib/sql-wasm.wasm') {
   const { title, fields } = parseProject(project.content);
-  const allHeaders = [...fixedHeaders(), ...fields];
+  const allHeaders = [...fixedHeaders(), ...fields.map(f => f.name)];
 
   /** @type {Record<string, 'TEXT'|'REAL'>} */
   const colTypes = {
@@ -115,7 +115,7 @@ export async function generateSQLite(project, samples, locateFile = () => './lib
     'GPS Accuracy': 'REAL',
     'Photo': 'TEXT',
   };
-  fields.forEach((f) => { colTypes[f] = 'TEXT'; });
+  fields.forEach((f) => { colTypes[f.name] = 'TEXT'; });
 
   // initSqlJs loaded via <script> tag (UMD, sets window.initSqlJs)
   // In test env, vitest alias provides it as an ESM import

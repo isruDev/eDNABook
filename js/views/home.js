@@ -1,27 +1,7 @@
-import { getAllProjects, getSamplesByProject } from '../db.js';
+import { getAllProjects, getSamplesByProject, createProject, parseProject } from '../db.js';
 import { showView, formatDate, clearElement, createElement } from '../ui.js';
 import { navigate } from '../app.js';
-
-/**
- * Parses a project content string into title and fields.
- *
- * Duplicates the logic from db.js parseProject to avoid importing a function
- * that is not included in the db.js vi.mock factory in tests.
- *
- * @param {string} content - Newline-delimited project content string.
- * @returns {{ title: string, fields: string[] }} Parsed title and field names.
- */
-function parseContent(content) {
-  const lines = content
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
-
-  if (lines.length === 0) return { title: '', fields: [] };
-
-  const [title, ...fields] = lines;
-  return { title, fields };
-}
+import { TEMPLATES } from '../templates.js';
 
 /**
  * Builds a single project card element.
@@ -31,7 +11,7 @@ function parseContent(content) {
  * @returns {HTMLElement} A card element populated with project summary data.
  */
 function buildProjectCard(project, sampleCount) {
-  const { title, fields } = parseContent(project.content);
+  const { title, fields } = parseProject(project.content);
 
   const heading = createElement('h2', {}, title);
 
@@ -79,11 +59,17 @@ export async function renderHome() {
       navigate('#/project/new');
     });
     actionsContainer.appendChild(newBtn);
+
+    // Template buttons in header next to New Project
+    for (const template of TEMPLATES) {
+      const btn = createElement('button', { className: 'btn-primary header-template-btn' }, `New ${template.name}`);
+      btn.addEventListener('click', async () => {
+        const project = await createProject(template.content);
+        navigate(`#/project/${project.id}`);
+      });
+      actionsContainer.appendChild(btn);
+    }
   }
-
-  if (!listContainer) return;
-
-  clearElement(listContainer);
 
   const projects = await getAllProjects();
 
