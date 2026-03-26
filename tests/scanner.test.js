@@ -12,8 +12,17 @@ vi.mock('../lib/html5-qrcode.min.js', () => ({
     start: mockStart,
     stop: mockStop,
     clear: mockClear,
-    getState: () => (mockIsScanning ? 2 : 1), // 2 = SCANNING, 1 = NOT_STARTED
+    getState: () => (mockIsScanning ? 2 : 1),
   })),
+  Html5QrcodeSupportedFormats: {
+    QR_CODE: 0,
+    CODE_128: 2,
+    CODE_39: 3,
+    EAN_13: 5,
+    EAN_8: 6,
+    UPC_A: 11,
+    UPC_E: 12,
+  },
 }));
 
 describe('startScanner', () => {
@@ -22,13 +31,15 @@ describe('startScanner', () => {
     mockIsScanning = false;
   });
 
-  it('initializes Html5Qrcode with the given containerId', async () => {
+  it('initializes Html5Qrcode with containerId and formatsToSupport', async () => {
     const { Html5Qrcode } = await import('../lib/html5-qrcode.min.js');
     mockStart.mockResolvedValueOnce(undefined);
 
     await startScanner('qr-reader', vi.fn(), vi.fn());
 
-    expect(Html5Qrcode).toHaveBeenCalledWith('qr-reader');
+    expect(Html5Qrcode).toHaveBeenCalledWith('qr-reader', expect.objectContaining({
+      formatsToSupport: expect.arrayContaining([0, 2, 3, 5, 6, 11, 12]),
+    }));
   });
 
   it('starts scanning with correct config', async () => {

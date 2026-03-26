@@ -6,7 +6,7 @@ import { navigate } from '../app.js';
  * Module-level mutable state: the in-progress field array during editing.
  * Scoped to this module -- not exported.
  *
- * @type {string[]}
+ * @type {Array<{ name: string, type: 'text' | 'checkbox' }>}
  */
 let _fields = [];
 
@@ -29,8 +29,15 @@ let _editingId = null;
  */
 export function serializeFields(title, fields) {
   const trimmedTitle = title.trim();
-  const trimmedFields = fields.map(f => f.trim()).filter(f => f.length > 0);
-  return [trimmedTitle, ...trimmedFields].join('\n');
+  const serialized = fields
+    .map(f => {
+      const name = (typeof f === 'string' ? f : f.name).trim();
+      if (!name) return '';
+      const type = typeof f === 'string' ? 'text' : (f.type || 'text');
+      return type === 'checkbox' ? `[checkbox]${name}` : name;
+    })
+    .filter(line => line.length > 0);
+  return [trimmedTitle, ...serialized].join('\n');
 }
 
 /**
@@ -52,7 +59,7 @@ export function deserializeContent(content) {
  * @returns {string[]} New array with empty string appended.
  */
 export function addField(fields) {
-  return [...fields, ''];
+  return [...fields, { name: '', type: 'text' }];
 }
 
 /**
@@ -103,8 +110,15 @@ export function moveFieldDown(fields, index) {
  * @returns {void}
  */
 function syncFieldsFromDOM() {
-  const inputs = document.querySelectorAll('#field-list .field-row input');
-  _fields = Array.from(inputs).map(input => input.value);
+  const rows = document.querySelectorAll('#field-list .field-row');
+  _fields = Array.from(rows).map(row => {
+    const input = row.querySelector('input');
+    const typeBtn = row.querySelector('.btn-field-type');
+    return {
+      name: input.value,
+      type: typeBtn && typeBtn.dataset.fieldType === 'checkbox' ? 'checkbox' : 'text',
+    };
+  });
 }
 
 /**
@@ -119,14 +133,31 @@ function renderFieldList() {
   clearElement(container);
 
   _fields.forEach((field, index) => {
+    const fieldObj = typeof field === 'string' ? { name: field, type: 'text' } : field;
+
+    const typeBtn = createElement('button', {
+      type: 'button',
+      className: `btn-icon btn-field-type ${fieldObj.type === 'checkbox' ? 'field-type-checkbox' : 'field-type-text'}`,
+      'aria-label': 'Toggle field type',
+    }, fieldObj.type === 'checkbox' ? '\u2611' : 'Aa');
+    typeBtn.dataset.fieldType = fieldObj.type;
+    typeBtn.addEventListener('click', () => {
+      syncFieldsFromDOM();
+      _fields[index] = {
+        ..._fields[index],
+        type: _fields[index].type === 'checkbox' ? 'text' : 'checkbox',
+      };
+      renderFieldList();
+    });
+
     const input = createElement('input', {
       type: 'text',
       placeholder: 'Field name (e.g., Collector)',
-      value: field,
+      value: fieldObj.name,
     }, '');
-    input.value = field;
+    input.value = fieldObj.name;
     input.addEventListener('input', e => {
-      _fields[index] = e.target.value;
+      _fields[index] = { ..._fields[index], name: e.target.value };
     });
 
     const upBtn = createElement('button', {
@@ -165,7 +196,7 @@ function renderFieldList() {
     });
 
     const row = createElement('div', { className: 'field-row' }, [
-      input, upBtn, downBtn, removeBtn,
+      typeBtn, input, upBtn, downBtn, removeBtn,
     ]);
     container.appendChild(row);
   });

@@ -187,17 +187,32 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
     const wrapper = document.createElement('div');
     wrapper.className = 'form-field';
 
-    const label = document.createElement('label');
-    label.setAttribute('for', `field-${field}`);
-    label.textContent = field;
+    if (field.type === 'checkbox') {
+      const checkWrapper = document.createElement('div');
+      checkWrapper.className = 'checkbox-field';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.id = `field-${field.name}`;
+      input.dataset.field = field.name;
+      const checkLabel = document.createElement('label');
+      checkLabel.setAttribute('for', `field-${field.name}`);
+      checkLabel.className = 'checkbox-label';
+      checkLabel.textContent = field.name;
+      checkWrapper.appendChild(input);
+      checkWrapper.appendChild(checkLabel);
+      wrapper.appendChild(checkWrapper);
+    } else {
+      const label = document.createElement('label');
+      label.setAttribute('for', `field-${field.name}`);
+      label.textContent = field.name;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = `field-${field.name}`;
+      input.dataset.field = field.name;
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+    }
 
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.id = `field-${field}`;
-    input.dataset.field = field;
-
-    wrapper.appendChild(label);
-    wrapper.appendChild(input);
     metaContainer.appendChild(wrapper);
   });
 
@@ -279,7 +294,7 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
     const scannedAt = document.getElementById('sample-datetime').value;
     const metadata = {};
     metaContainer.querySelectorAll('input[data-field]').forEach((input) => {
-      metadata[input.dataset.field] = input.value;
+      metadata[input.dataset.field] = input.type === 'checkbox' ? String(input.checked) : input.value;
     });
 
     const payload = {

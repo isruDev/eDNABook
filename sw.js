@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edna-logger-v16';
+const CACHE_NAME = 'edna-logger-v17';
 
 const PRECACHE_ASSETS = [
   './',
@@ -13,6 +13,7 @@ const PRECACHE_ASSETS = [
   './js/gps-pill.js',
   './js/photo.js',
   './js/util.js',
+  './js/templates.js',
   './js/views/home.js',
   './js/views/project-form.js',
   './js/views/project-dashboard.js',

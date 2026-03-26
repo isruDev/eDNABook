@@ -37,9 +37,9 @@
     --color-primary-light: #4eba6f;
     --color-surface: #1e1e2e;
     --color-background: #141422;
-    --color-border: #2a2a3c;
-    --color-text: #e4e4ef;
-    --color-text-secondary: #9898ac;
+    --color-border: #3a3a50;
+    --color-text: #f0f0f8;
+    --color-text-secondary: #b0b0c0;
     --color-success: #4caf50;
     --color-error: #ef5350;
     --color-warning: #ff9800;
@@ -71,28 +71,33 @@
     background: rgba(239, 83, 80, 0.15);
   }
 
-  .gps-pill {
-    background: #2d2d2d;
-    color: #9ca3af;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  }
-
   .gps-locking {
-    background: #2d2d2d;
-    color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
   }
 
   .gps-locked {
-    background: #14532d;
-    color: #4ade80;
-    border: 1px solid rgba(74, 222, 128, 0.2);
+    color: #86efac;
   }
 
   .gps-error {
-    background: #2d2d2d;
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+  }
+
+  html {
+    font-size: 18px;
+  }
+
+  .card, .sample-card {
+    border-width: 2px;
+  }
+
+  input, select, textarea {
+    border-width: 2px;
+  }
+
+  .btn-primary, .btn-secondary, .btn-danger {
+    font-weight: 600;
+    min-height: 52px;
   }
 }
 
@@ -536,6 +541,7 @@ a {
   z-index: 101;
   display: flex;
   align-items: center;
+  gap: 6px;
 }
 
 #new-project-btn {
@@ -1201,6 +1207,70 @@ a {
   }
 }
 
+/* ---------- Field Type Toggle ---------- */
+.btn-field-type {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.field-type-checkbox {
+  background: #14532d;
+  border-color: #4ade80;
+  color: #4ade80;
+  font-size: 16px;
+}
+
+/* ---------- Checkbox Field in Sample Entry ---------- */
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.checkbox-field input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--color-primary);
+}
+
+.checkbox-label {
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* ---------- Template Button ---------- */
+.header-template-btn {
+  width: auto;
+  height: 30px;
+  min-height: 30px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+  background: #ffffff;
+  color: var(--color-primary);
+}
+
+.header-template-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.header-template-btn:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
 /* ---------- Photo Prompt ---------- */
 .photo-prompt {
   text-align: center;
@@ -1228,16 +1298,16 @@ a {
 .gps-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 8px auto 0;
-  padding: 6px 14px;
-  border-radius: 16px;
-  font-size: 12px;
+  gap: 4px;
+  position: absolute;
+  right: var(--spacing-md);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.65rem;
   width: fit-content;
   transition: opacity 0.5s ease;
-  background: #e5e7eb;
-  color: #374151;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 .gps-pill-hidden {
@@ -1246,39 +1316,36 @@ a {
 }
 
 .gps-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
 }
 
 .gps-locking .gps-dot {
-  background: #f59e0b;
+  background: #fbbf24;
   animation: gps-pulse 1.5s infinite;
 }
 
 .gps-locking {
-  background: #fef3c7;
-  color: #92400e;
+  color: #fef3c7;
 }
 
 .gps-locked .gps-dot {
-  background: #22c55e;
+  background: #86efac;
 }
 
 .gps-locked {
-  background: #dcfce7;
-  color: #166534;
+  color: #dcfce7;
 }
 
 .gps-error .gps-dot {
-  background: #ef4444;
+  background: #fca5a5;
 }
 
 .gps-error {
-  background: #fef2f2;
-  color: #991b1b;
+  color: #fecaca;
 }
 
 @keyframes gps-pulse {

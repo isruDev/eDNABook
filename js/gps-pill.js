@@ -22,7 +22,7 @@ export function initGpsPill() {
   pillEl.innerHTML = '<span class="gps-dot"></span><span class="gps-text"></span>';
 
   const header = document.getElementById('app-header');
-  header.after(pillEl);
+  header.appendChild(pillEl);
 
   onGpsChange(updatePill);
 }

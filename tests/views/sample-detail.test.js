@@ -35,7 +35,7 @@ import { capturePhoto, savePhotoToDevice } from '../../js/photo.js';
 import { renderSampleDetail, renderSampleEdit } from '../../js/views/sample-detail.js';
 
 const MOCK_PROJECT = { id: 'proj-1', content: 'River Study\nSite\nCollector' };
-const MOCK_PARSED = { title: 'River Study', fields: ['Site', 'Collector'] };
+const MOCK_PARSED = { title: 'River Study', fields: [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }] };
 const MOCK_SAMPLE = {
   id: 'sample-1',
   projectId: 'proj-1',

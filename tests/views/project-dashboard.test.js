@@ -44,7 +44,7 @@ import { navigate } from '../../js/app.js';
 import { renderProjectDashboard } from '../../js/views/project-dashboard.js';
 
 const MOCK_PROJECT = { id: 'proj-1', content: 'Test Project\nSite\nCollector', createdAt: '2026-01-01', updatedAt: '2026-01-01' };
-const MOCK_PARSED = { title: 'Test Project', fields: ['Site', 'Collector'] };
+const MOCK_PARSED = { title: 'Test Project', fields: [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }] };
 const MOCK_SAMPLES = [
   { id: 's1', sampleId: 'S-001', scannedAt: '2026-01-01T10:00:00', metadata: { Site: 'River A', Collector: 'Jane' } },
   { id: 's2', sampleId: 'S-002', scannedAt: '2026-01-02T11:00:00', metadata: { Site: 'Lake B', Collector: 'John' } },

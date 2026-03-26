@@ -4,7 +4,16 @@ vi.mock('../../js/db.js', () => ({
   createProject: vi.fn(),
   getProject: vi.fn(),
   updateProject: vi.fn(),
-  parseProject: vi.fn(),
+  parseProject: vi.fn((content) => {
+    const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length === 0) return { title: '', fields: [] };
+    const [title, ...rawFields] = lines;
+    const fields = rawFields.map(l => {
+      if (l.startsWith('[checkbox]')) return { name: l.slice(10), type: 'checkbox' };
+      return { name: l, type: 'text' };
+    });
+    return { title, fields };
+  }),
 }));
 
 vi.mock('../../js/ui.js', () => ({
@@ -79,7 +88,11 @@ beforeEach(() => {
   parseProject.mockImplementation((content) => {
     const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     if (lines.length === 0) return { title: '', fields: [] };
-    const [title, ...fields] = lines;
+    const [title, ...rawFields] = lines;
+    const fields = rawFields.map(l => {
+      if (l.startsWith('[checkbox]')) return { name: l.slice(10), type: 'checkbox' };
+      return { name: l, type: 'text' };
+    });
     return { title, fields };
   });
 });
@@ -93,9 +106,20 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('serializeFields', () => {
-  it('serializes title and fields into newline-delimited content', () => {
-    const result = serializeFields('River Survey', ['Collector', 'Site', 'Depth']);
-    expect(result).toBe('River Survey\nCollector\nSite\nDepth');
+  it('serializes title and typed fields into newline-delimited content', () => {
+    const result = serializeFields('River Survey', [
+      { name: 'Collector', type: 'text' },
+      { name: 'Site', type: 'text' },
+    ]);
+    expect(result).toBe('River Survey\nCollector\nSite');
+  });
+
+  it('serializes checkbox fields with [checkbox] prefix', () => {
+    const result = serializeFields('Study', [
+      { name: 'pH', type: 'text' },
+      { name: 'Waders Cleaned', type: 'checkbox' },
+    ]);
+    expect(result).toBe('Study\npH\n[checkbox]Waders Cleaned');
   });
 
   it('serializes title with no fields', () => {
@@ -103,9 +127,17 @@ describe('serializeFields', () => {
     expect(result).toBe('Just Title');
   });
 
-  it('trims whitespace from title and fields during serialization', () => {
-    const result = serializeFields('  Survey  ', ['  Field1  ', '  Field2  ']);
+  it('trims whitespace from title and field names', () => {
+    const result = serializeFields('  Survey  ', [
+      { name: '  Field1  ', type: 'text' },
+      { name: '  Field2  ', type: 'text' },
+    ]);
     expect(result).toBe('Survey\nField1\nField2');
+  });
+
+  it('handles legacy string fields for backward compat', () => {
+    const result = serializeFields('Survey', ['Collector', 'Site']);
+    expect(result).toBe('Survey\nCollector\nSite');
   });
 });
 
@@ -114,10 +146,18 @@ describe('serializeFields', () => {
 // ---------------------------------------------------------------------------
 
 describe('deserializeContent', () => {
-  it('extracts title and fields from content string', () => {
+  it('extracts title and typed fields from content string', () => {
     const result = deserializeContent('River Survey\nCollector\nSite');
     expect(result.title).toBe('River Survey');
-    expect(result.fields).toEqual(['Collector', 'Site']);
+    expect(result.fields).toEqual([
+      { name: 'Collector', type: 'text' },
+      { name: 'Site', type: 'text' },
+    ]);
+  });
+
+  it('parses checkbox fields', () => {
+    const result = deserializeContent('Study\n[checkbox]Clean Waders');
+    expect(result.fields).toEqual([{ name: 'Clean Waders', type: 'checkbox' }]);
   });
 
   it('returns empty title and fields for empty content', () => {
@@ -132,16 +172,20 @@ describe('deserializeContent', () => {
 // ---------------------------------------------------------------------------
 
 describe('addField', () => {
-  it('appends an empty string to the fields array', () => {
-    const result = addField(['A', 'B']);
-    expect(result).toEqual(['A', 'B', '']);
+  it('appends a new text field object to the array', () => {
+    const result = addField([{ name: 'A', type: 'text' }, { name: 'B', type: 'text' }]);
+    expect(result).toEqual([
+      { name: 'A', type: 'text' },
+      { name: 'B', type: 'text' },
+      { name: '', type: 'text' },
+    ]);
   });
 
   it('returns a new array (does not mutate input)', () => {
-    const original = ['A'];
+    const original = [{ name: 'A', type: 'text' }];
     const result = addField(original);
     expect(result).not.toBe(original);
-    expect(original).toEqual(['A']);
+    expect(original).toHaveLength(1);
   });
 });
 

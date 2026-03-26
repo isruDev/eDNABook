@@ -16,7 +16,7 @@ import { openDB } from 'idb';
  * @property {string} updatedAt
  */
 
-/** @typedef {{ title: string, fields: string[] }} ParsedProject */
+/** @typedef {{ title: string, fields: Array<{ name: string, type: 'text' | 'checkbox' }> }} ParsedProject */
 
 const DB_NAME = 'edna-logger';
 const DB_VERSION = 1;
@@ -60,7 +60,13 @@ export function parseProject(content) {
     return { title: '', fields: [] };
   }
 
-  const [title, ...fields] = lines;
+  const [title, ...rawFields] = lines;
+  const fields = rawFields.map(line => {
+    if (line.startsWith('[checkbox]')) {
+      return { name: line.slice('[checkbox]'.length), type: 'checkbox' };
+    }
+    return { name: line, type: 'text' };
+  });
   return { title, fields };
 }
 

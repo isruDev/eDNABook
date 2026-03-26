@@ -70,7 +70,12 @@ export async function renderSampleDetail(sampleId) {
   }
 
   fields.forEach((field) => {
-    addRow(field, (sample.metadata || {})[field] || '');
+    const val = (sample.metadata || {})[field.name] || '';
+    if (field.type === 'checkbox') {
+      addRow(field.name, val === 'true' ? 'Yes' : 'No');
+    } else {
+      addRow(field.name, val);
+    }
   });
 
   // Photo row
@@ -179,18 +184,34 @@ export async function renderSampleEdit(sampleId) {
     const wrapper = document.createElement('div');
     wrapper.className = 'form-field';
 
-    const label = document.createElement('label');
-    label.setAttribute('for', `edit-field-${field}`);
-    label.textContent = field;
+    if (field.type === 'checkbox') {
+      const checkWrapper = document.createElement('div');
+      checkWrapper.className = 'checkbox-field';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.id = `edit-field-${field.name}`;
+      input.dataset.field = field.name;
+      input.checked = (sample.metadata || {})[field.name] === 'true';
+      const checkLabel = document.createElement('label');
+      checkLabel.setAttribute('for', `edit-field-${field.name}`);
+      checkLabel.className = 'checkbox-label';
+      checkLabel.textContent = field.name;
+      checkWrapper.appendChild(input);
+      checkWrapper.appendChild(checkLabel);
+      wrapper.appendChild(checkWrapper);
+    } else {
+      const label = document.createElement('label');
+      label.setAttribute('for', `edit-field-${field.name}`);
+      label.textContent = field.name;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = `edit-field-${field.name}`;
+      input.dataset.field = field.name;
+      input.value = (sample.metadata || {})[field.name] || '';
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+    }
 
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.id = `edit-field-${field}`;
-    input.dataset.field = field;
-    input.value = (sample.metadata || {})[field] || '';
-
-    wrapper.appendChild(label);
-    wrapper.appendChild(input);
     metaContainer.appendChild(wrapper);
   });
 
@@ -204,7 +225,7 @@ export async function renderSampleEdit(sampleId) {
     const scannedAt = document.getElementById('edit-sample-datetime').value;
     const metadata = {};
     metaContainer.querySelectorAll('input[data-field]').forEach((input) => {
-      metadata[input.dataset.field] = input.value;
+      metadata[input.dataset.field] = input.type === 'checkbox' ? String(input.checked) : input.value;
     });
 
     await updateSample(sampleId, {
