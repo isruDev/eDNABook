@@ -68,7 +68,7 @@ describe('initGpsPill', () => {
     changeCallback({ latitude: null, longitude: null, accuracy: null, state: 'error' });
     const pill = document.getElementById('gps-pill');
     expect(pill.classList.contains('gps-error')).toBe(true);
-    expect(pill.textContent.toLowerCase()).toContain('unavailable');
+    expect(pill.textContent.toLowerCase()).toContain('no gps');
   });
 
   it('reappears in yellow if accuracy degrades after being locked', () => {

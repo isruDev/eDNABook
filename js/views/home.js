@@ -54,7 +54,8 @@ export async function renderHome() {
 
   if (actionsContainer) {
     clearElement(actionsContainer);
-    const newBtn = createElement('button', { className: 'btn-primary', id: 'new-project-btn' }, 'New Project');
+    const newBtn = createElement('button', { className: 'btn-primary header-action-btn', id: 'new-project-btn' }, '');
+    newBtn.innerHTML = '<span class="btn-label-full">New Project</span><span class="btn-label-short">New</span>';
     newBtn.addEventListener('click', () => {
       navigate('#/project/new');
     });
@@ -62,7 +63,8 @@ export async function renderHome() {
 
     // Template buttons in header next to New Project
     for (const template of TEMPLATES) {
-      const btn = createElement('button', { className: 'btn-primary header-template-btn' }, `New ${template.name}`);
+      const btn = createElement('button', { className: 'btn-primary header-action-btn header-template-btn' }, '');
+      btn.innerHTML = `<span class="btn-label-full">New ${template.name}</span><span class="btn-label-short">Sample</span>`;
       btn.addEventListener('click', async () => {
         const project = await createProject(template.content);
         navigate(`#/project/${project.id}`);

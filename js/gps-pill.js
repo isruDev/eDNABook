@@ -19,7 +19,7 @@ export function initGpsPill() {
   pillEl = document.createElement('div');
   pillEl.id = 'gps-pill';
   pillEl.className = 'gps-pill gps-pill-hidden';
-  pillEl.innerHTML = '<span class="gps-dot"></span><span class="gps-text"></span>';
+  pillEl.innerHTML = '<span class="gps-dot"></span><span class="gps-text-prefix"></span><span class="gps-text-value"></span>';
 
   const header = document.getElementById('app-header');
   header.appendChild(pillEl);
@@ -42,7 +42,8 @@ function updatePill(status) {
   }
 
   pillEl.className = 'gps-pill';
-  const textEl = pillEl.querySelector('.gps-text');
+  const prefixEl = pillEl.querySelector('.gps-text-prefix');
+  const valueEl = pillEl.querySelector('.gps-text-value');
 
   switch (status.state) {
     case 'waiting':
@@ -50,18 +51,21 @@ function updatePill(status) {
       break;
     case 'locking':
       pillEl.classList.add('gps-locking');
-      textEl.textContent = `GPS locking... ${Math.round(status.accuracy)}m`;
+      prefixEl.textContent = 'GPS ';
+      valueEl.textContent = `${Math.round(status.accuracy)}m`;
       break;
     case 'locked':
       pillEl.classList.add('gps-locked');
-      textEl.textContent = `GPS locked -- ${Math.round(status.accuracy)}m`;
+      prefixEl.textContent = 'GPS ';
+      valueEl.textContent = `${Math.round(status.accuracy)}m`;
       fadeTimeout = setTimeout(() => {
         pillEl.classList.add('gps-pill-hidden');
       }, 3000);
       break;
     case 'error':
       pillEl.classList.add('gps-error');
-      textEl.textContent = 'GPS unavailable';
+      prefixEl.textContent = '';
+      valueEl.textContent = 'No GPS';
       break;
   }
 }
