@@ -68,6 +68,18 @@ describe('parseRoute', () => {
   it('returns 404 route for unknown hash', () => {
     expect(parseRoute('#/unknown/path')).toEqual({ route: '404', params: {} });
   });
+
+  it('maps #/offline/ios to offline-ios route', () => {
+    expect(parseRoute('#/offline/ios')).toEqual({ route: 'offline-ios', params: {} });
+  });
+
+  it('maps #/offline/android to offline-android route', () => {
+    expect(parseRoute('#/offline/android')).toEqual({ route: 'offline-android', params: {} });
+  });
+
+  it('maps #/about to about route', () => {
+    expect(parseRoute('#/about')).toEqual({ route: 'about', params: {} });
+  });
 });
 
 describe('clickable title', () => {

@@ -53,6 +53,21 @@ const ROUTES = [
     route: 'sample-detail',
     params: match => ({ id: match[1] }),
   },
+  {
+    pattern: /^\/offline\/ios$/,
+    route: 'offline-ios',
+    params: () => ({}),
+  },
+  {
+    pattern: /^\/offline\/android$/,
+    route: 'offline-android',
+    params: () => ({}),
+  },
+  {
+    pattern: /^\/about$/,
+    route: 'about',
+    params: () => ({}),
+  },
 ];
 
 /**
@@ -108,6 +123,9 @@ export async function onRouteChange() {
     'project-scan':       './views/sample-entry.js',
     'sample-detail':      './views/sample-detail.js',
     'sample-edit':        './views/sample-detail.js',
+    'offline-ios':        './views/offline-guide.js',
+    'offline-android':    './views/offline-guide.js',
+    'about':              './views/about.js',
   };
 
   const modulePath = VIEW_MODULES[route] ?? VIEW_MODULES['home'];
@@ -137,6 +155,15 @@ export async function onRouteChange() {
         break;
       case 'sample-edit':
         await mod.renderSampleEdit(params.id);
+        break;
+      case 'offline-ios':
+        await mod.renderOfflineGuide('ios');
+        break;
+      case 'offline-android':
+        await mod.renderOfflineGuide('android');
+        break;
+      case 'about':
+        await mod.renderAbout();
         break;
     }
   } catch (err) {
