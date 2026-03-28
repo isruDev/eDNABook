@@ -2,6 +2,7 @@ import { initDB } from './db.js';
 import { showToast } from './ui.js';
 import { startGpsWatch } from './gps.js';
 import { initGpsPill } from './gps-pill.js';
+import { openMoreModal } from './views/more-modal.js';
 
 /**
  * @typedef {{ route: string, params: Record<string, string> }} ParsedRoute
@@ -195,6 +196,11 @@ export async function init() {
   if (appTitle) {
     appTitle.style.cursor = 'pointer';
     appTitle.addEventListener('click', () => { window.location.hash = '#/'; });
+  }
+
+  const moreBtn = document.getElementById('more-btn');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', openMoreModal);
   }
 
   window.addEventListener('hashchange', onRouteChange);
