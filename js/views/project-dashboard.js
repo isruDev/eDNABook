@@ -23,6 +23,11 @@ import { showExportDialog } from './export-dialog.js';
  */
 export async function renderProjectDashboard(projectId) {
   const project = await getProject(projectId);
+  if (!project) {
+    showToast('Project not found', 'error');
+    navigate('#/');
+    return;
+  }
   const { title, fields } = parseProject(project.content);
   const samples = await getSamplesByProject(projectId);
 

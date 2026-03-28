@@ -66,7 +66,16 @@ export async function renderHome() {
       const btn = createElement('button', { className: 'btn-primary header-action-btn header-template-btn' }, '');
       btn.innerHTML = `<span class="btn-label-full">New ${template.name}</span><span class="btn-label-short">Sample</span>`;
       btn.addEventListener('click', async () => {
-        const project = await createProject(template.content);
+        const existing = await getAllProjects();
+        const existingTitles = new Set(existing.map(p => parseProject(p.content).title));
+        let name = template.name;
+        if (existingTitles.has(name)) {
+          let n = 2;
+          while (existingTitles.has(`${template.name} ${n}`)) n++;
+          name = `${template.name} ${n}`;
+        }
+        const content = template.content.replace(template.name, name);
+        const project = await createProject(content);
         navigate(`#/project/${project.id}`);
       });
       actionsContainer.appendChild(btn);

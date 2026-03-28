@@ -163,6 +163,13 @@ export async function init() {
   await initDB();
   startGpsWatch();
   initGpsPill();
+
+  const appTitle = document.getElementById('app-title');
+  if (appTitle) {
+    appTitle.style.cursor = 'pointer';
+    appTitle.addEventListener('click', () => { window.location.hash = '#/'; });
+  }
+
   window.addEventListener('hashchange', onRouteChange);
   await onRouteChange();
 }

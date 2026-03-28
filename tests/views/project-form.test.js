@@ -4,6 +4,7 @@ vi.mock('../../js/db.js', () => ({
   createProject: vi.fn(),
   getProject: vi.fn(),
   updateProject: vi.fn(),
+  getAllProjects: vi.fn(),
   parseProject: vi.fn((content) => {
     const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     if (lines.length === 0) return { title: '', fields: [] };
@@ -42,7 +43,7 @@ vi.mock('../../js/app.js', () => ({
   navigate: vi.fn(),
 }));
 
-import { createProject, getProject, updateProject, parseProject } from '../../js/db.js';
+import { createProject, getProject, updateProject, parseProject, getAllProjects } from '../../js/db.js';
 import { navigate } from '../../js/app.js';
 import { showView, showToast } from '../../js/ui.js';
 import {
@@ -84,6 +85,7 @@ function setupDOM() {
 beforeEach(() => {
   setupDOM();
   vi.clearAllMocks();
+  getAllProjects.mockResolvedValue([]);
   // Default parseProject behavior mirrors the real implementation
   parseProject.mockImplementation((content) => {
     const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -335,6 +337,13 @@ describe('renderProjectForm (create mode)', () => {
 // ---------------------------------------------------------------------------
 
 describe('renderProjectForm (edit mode)', () => {
+  it('redirects to home with toast when project not found', async () => {
+    getProject.mockResolvedValue(undefined);
+    await renderProjectForm('nonexistent-id');
+    expect(navigate).toHaveBeenCalledWith('#/');
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('not found'), 'error');
+  });
+
   it('loads existing project content into the form', async () => {
     getProject.mockResolvedValue({
       id: 'existing-id',
@@ -385,5 +394,60 @@ describe('renderProjectForm (edit mode)', () => {
     const form = document.getElementById('project-form');
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     await vi.waitFor(() => expect(navigate).toHaveBeenCalledWith('#/project/existing-id'));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Duplicate project name prevention
+// ---------------------------------------------------------------------------
+
+describe('duplicate project name prevention', () => {
+  it('shows error and does not create when title matches existing project', async () => {
+    getAllProjects.mockResolvedValue([
+      { id: 'existing-1', content: 'River Survey\nField1' },
+    ]);
+    createProject.mockResolvedValue({ id: 'new-id', content: '' });
+
+    await renderProjectForm();
+    document.getElementById('project-title-input').value = 'River Survey';
+    const form = document.getElementById('project-form');
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+    await new Promise(r => setTimeout(r, 0));
+    expect(createProject).not.toHaveBeenCalled();
+    expect(document.getElementById('title-error')).not.toBeNull();
+    expect(document.getElementById('title-error').textContent).toMatch(/already exists/i);
+  });
+
+  it('allows saving when title matches the project being edited (same project)', async () => {
+    getAllProjects.mockResolvedValue([
+      { id: 'existing-id', content: 'River Survey\nField1' },
+    ]);
+    getProject.mockResolvedValue({ id: 'existing-id', content: 'River Survey\nField1' });
+    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+
+    await renderProjectForm('existing-id');
+    document.getElementById('project-title-input').value = 'River Survey';
+    const form = document.getElementById('project-form');
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+    await vi.waitFor(() => expect(updateProject).toHaveBeenCalledTimes(1));
+  });
+
+  it('blocks saving when edit title matches a different existing project', async () => {
+    getAllProjects.mockResolvedValue([
+      { id: 'other-id', content: 'Lake Study\nField1' },
+    ]);
+    getProject.mockResolvedValue({ id: 'existing-id', content: 'River Survey\nField1' });
+    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+
+    await renderProjectForm('existing-id');
+    document.getElementById('project-title-input').value = 'Lake Study';
+    const form = document.getElementById('project-form');
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+    await new Promise(r => setTimeout(r, 0));
+    expect(updateProject).not.toHaveBeenCalled();
+    expect(document.getElementById('title-error')).not.toBeNull();
   });
 });

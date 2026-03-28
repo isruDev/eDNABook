@@ -191,4 +191,39 @@ describe('renderHome', () => {
     expect(createProject).toHaveBeenCalledWith(expect.stringContaining('Sample Project'));
     expect(navigate).toHaveBeenCalledWith('#/project/new-proj-1');
   });
+
+  it('template button appends number when name already exists', async () => {
+    getAllProjects.mockResolvedValue([
+      { id: 'p1', content: 'Sample Project\nField1', updatedAt: '2026-01-01' },
+    ]);
+    getSamplesByProject.mockResolvedValue([]);
+    createProject.mockResolvedValue({ id: 'new-proj-2' });
+    await renderHome();
+
+    const templateBtn = document.querySelector('.header-template-btn');
+    templateBtn.click();
+    await new Promise(r => setTimeout(r, 0));
+
+    const createdContent = createProject.mock.calls[0][0];
+    const firstLine = createdContent.split('\n')[0];
+    expect(firstLine).toBe('Sample Project 2');
+  });
+
+  it('template button increments number past existing numbered projects', async () => {
+    getAllProjects.mockResolvedValue([
+      { id: 'p1', content: 'Sample Project\nField1', updatedAt: '2026-01-01' },
+      { id: 'p2', content: 'Sample Project 2\nField1', updatedAt: '2026-01-02' },
+    ]);
+    getSamplesByProject.mockResolvedValue([]);
+    createProject.mockResolvedValue({ id: 'new-proj-3' });
+    await renderHome();
+
+    const templateBtn = document.querySelector('.header-template-btn');
+    templateBtn.click();
+    await new Promise(r => setTimeout(r, 0));
+
+    const createdContent = createProject.mock.calls[0][0];
+    const firstLine = createdContent.split('\n')[0];
+    expect(firstLine).toBe('Sample Project 3');
+  });
 });

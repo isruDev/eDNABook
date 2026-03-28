@@ -98,6 +98,21 @@ beforeEach(() => {
 });
 
 describe('renderSampleDetail', () => {
+  it('redirects to home with toast when sample not found', async () => {
+    getSample.mockResolvedValue(undefined);
+    await renderSampleDetail('nonexistent-id');
+    expect(navigate).toHaveBeenCalledWith('#/');
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('not found'), 'error');
+  });
+
+  it('redirects to home with toast when parent project not found', async () => {
+    getSample.mockResolvedValue(MOCK_SAMPLE);
+    getProject.mockResolvedValue(undefined);
+    await renderSampleDetail('sample-1');
+    expect(navigate).toHaveBeenCalledWith('#/');
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('not found'), 'error');
+  });
+
   it('renders sample ID in content area', async () => {
     await renderSampleDetail('sample-1');
     expect(document.getElementById('sample-detail-content').textContent).toContain('S-001');
@@ -189,6 +204,13 @@ describe('renderSampleDetail', () => {
 });
 
 describe('renderSampleEdit', () => {
+  it('redirects to home with toast when sample not found', async () => {
+    getSample.mockResolvedValue(undefined);
+    await renderSampleEdit('nonexistent-id');
+    expect(navigate).toHaveBeenCalledWith('#/');
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('not found'), 'error');
+  });
+
   it('displays sample ID as read-only', async () => {
     await renderSampleEdit('sample-1');
     expect(document.getElementById('edit-display-sample-id').textContent).toBe('S-001');
