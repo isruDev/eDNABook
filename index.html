@@ -30,6 +30,7 @@
       <button class="btn-back" id="back-btn" style="display:none" aria-label="Back"></button>
       <h1 id="app-title">eDNALite</h1>
       <button class="btn-icon" id="header-action-btn" style="display:none" aria-label="Action"></button>
+      <button class="more-btn" id="more-btn" aria-label="More options">More</button>
     </header>
 
     <main id="main-content">
@@ -122,6 +123,20 @@
           <div id="edit-metadata-fields"></div>
           <button type="submit" class="btn-primary">Save Changes</button>
         </form>
+      </div>
+      <div class="view" data-view="offline-ios">
+        <button class="btn-back">Back</button>
+        <div id="offline-ios-content"></div>
+      </div>
+
+      <div class="view" data-view="offline-android">
+        <button class="btn-back">Back</button>
+        <div id="offline-android-content"></div>
+      </div>
+
+      <div class="view" data-view="about">
+        <button class="btn-back">Back</button>
+        <div id="about-content"></div>
       </div>
     </main>
   </div>
