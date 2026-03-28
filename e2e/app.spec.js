@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('eDNA Logger PWA', () => {
+test.describe('eDNALite PWA', () => {
   test('loads home screen with New Project button', async ({ page }) => {
     await page.goto('/');
     // Wait for the app to initialize and render home view
     await page.waitForSelector('#new-project-btn', { state: 'visible', timeout: 5000 });
-    await expect(page.locator('h1')).toContainText('eDNA Logger');
+    await expect(page.locator('h1')).toContainText('eDNALite');
     await expect(page.locator('#new-project-btn')).toBeVisible();
   });
 

@@ -1,6 +1,6 @@
 {
-  "name": "eDNA Metadata Logger",
-  "short_name": "eDNA Logger",
+  "name": "eDNALite",
+  "short_name": "eDNALite",
   "description": "Offline-first PWA for logging environmental DNA sample metadata in the field.",
   "start_url": "./",
   "display": "standalone",
