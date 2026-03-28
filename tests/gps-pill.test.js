@@ -8,7 +8,7 @@ import { onGpsChange } from '../js/gps.js';
 import { initGpsPill } from '../js/gps-pill.js';
 
 beforeEach(() => {
-  document.body.innerHTML = '<header class="app-header" id="app-header"><h1>eDNA Logger</h1></header><main></main>';
+  document.body.innerHTML = '<header class="app-header" id="app-header"><h1>eDNALite</h1></header><main></main>';
   vi.clearAllMocks();
   onGpsChange.mockReturnValue(() => {});
 });

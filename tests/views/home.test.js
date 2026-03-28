@@ -56,7 +56,7 @@ function setupDOM() {
   document.body.innerHTML = `
     <div id="app">
       <div class="view active" data-view="home">
-        <header><h1>eDNA Logger</h1></header>
+        <header><h1>eDNALite</h1></header>
         <div id="home-actions"></div>
         <div id="project-list"></div>
       </div>

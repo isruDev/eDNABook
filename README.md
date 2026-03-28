@@ -1,4 +1,4 @@
-# eDNA Metadata Logger
+# eDNALite
 
 A Progressive Web App for field technicians to log environmental DNA (eDNA) sample metadata. Set up projects with custom metadata fields, scan sample QR codes in the field (offline), capture GPS coordinates, and export data as CSV or SQLite.
 
