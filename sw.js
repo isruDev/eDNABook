@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edna-logger-v20';
+const CACHE_NAME = 'edna-logger-v21';
 
 const PRECACHE_ASSETS = [
   './',
@@ -20,6 +20,9 @@ const PRECACHE_ASSETS = [
   './js/views/sample-entry.js',
   './js/views/sample-detail.js',
   './js/views/export-dialog.js',
+  './js/views/more-modal.js',
+  './js/views/offline-guide.js',
+  './js/views/about.js',
   './lib/idb.js',
   './lib/html5-qrcode.min.js',
   './lib/papaparse.min.js',
