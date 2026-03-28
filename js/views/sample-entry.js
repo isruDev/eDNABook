@@ -28,6 +28,11 @@ function toDatetimeLocalValue(date) {
  */
 export async function renderSampleEntry(projectId) {
   const project = await getProject(projectId);
+  if (!project) {
+    showToast('Project not found', 'error');
+    navigate('#/');
+    return;
+  }
   const { title, fields } = parseProject(project.content);
 
   showView('sample-entry');

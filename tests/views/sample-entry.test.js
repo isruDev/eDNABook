@@ -108,6 +108,13 @@ beforeEach(() => {
 });
 
 describe('renderSampleEntry', () => {
+  it('redirects to home with toast when project not found', async () => {
+    getProject.mockResolvedValue(undefined);
+    await renderSampleEntry('nonexistent-id');
+    expect(navigate).toHaveBeenCalledWith('#/');
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('not found'), 'error');
+  });
+
   it('starts the scanner on render', async () => {
     await renderSampleEntry('proj-1');
     expect(startScanner).toHaveBeenCalledWith('qr-reader', expect.any(Function), expect.any(Function));

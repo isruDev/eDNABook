@@ -1,5 +1,22 @@
-import { describe, it, expect } from 'vitest';
-import { parseRoute } from '../js/app.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+vi.mock('../js/db.js', () => ({
+  initDB: vi.fn(),
+}));
+
+vi.mock('../js/gps.js', () => ({
+  startGpsWatch: vi.fn(),
+}));
+
+vi.mock('../js/gps-pill.js', () => ({
+  initGpsPill: vi.fn(),
+}));
+
+vi.mock('../js/ui.js', () => ({
+  showToast: vi.fn(),
+}));
+
+import { parseRoute, init } from '../js/app.js';
 
 describe('parseRoute', () => {
   it('maps empty hash to home route', () => {
@@ -50,5 +67,27 @@ describe('parseRoute', () => {
 
   it('returns 404 route for unknown hash', () => {
     expect(parseRoute('#/unknown/path')).toEqual({ route: '404', params: {} });
+  });
+});
+
+describe('clickable title', () => {
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <header class="app-header" id="app-header">
+        <h1 id="app-title">eDNALite</h1>
+      </header>
+      <main id="main-content"></main>
+    `;
+    window.location.hash = '';
+  });
+
+  it('app-title h1 has cursor pointer style and navigates home on click', async () => {
+    await init();
+
+    const title = document.getElementById('app-title');
+    expect(title.style.cursor).toBe('pointer');
+
+    title.click();
+    expect(window.location.hash).toBe('#/');
   });
 });

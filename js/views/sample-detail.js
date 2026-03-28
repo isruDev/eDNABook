@@ -27,7 +27,17 @@ function toDatetimeLocalValue(isoString) {
  */
 export async function renderSampleDetail(sampleId) {
   const sample = await getSample(sampleId);
+  if (!sample) {
+    showToast('Sample not found', 'error');
+    navigate('#/');
+    return;
+  }
   const project = await getProject(sample.projectId);
+  if (!project) {
+    showToast('Project not found', 'error');
+    navigate('#/');
+    return;
+  }
   const { fields } = parseProject(project.content);
 
   const content = document.getElementById('sample-detail-content');
@@ -163,7 +173,17 @@ export async function renderSampleDetail(sampleId) {
  */
 export async function renderSampleEdit(sampleId) {
   const sample = await getSample(sampleId);
+  if (!sample) {
+    showToast('Sample not found', 'error');
+    navigate('#/');
+    return;
+  }
   const project = await getProject(sample.projectId);
+  if (!project) {
+    showToast('Project not found', 'error');
+    navigate('#/');
+    return;
+  }
   const { fields } = parseProject(project.content);
 
   document.getElementById('edit-display-sample-id').textContent = sample.sampleId;

@@ -1,4 +1,4 @@
-import { createProject, getProject, updateProject, parseProject } from '../db.js';
+import { createProject, getProject, updateProject, parseProject, getAllProjects } from '../db.js';
 import { showView, showToast, clearElement, createElement } from '../ui.js';
 import { navigate } from '../app.js';
 
@@ -231,6 +231,18 @@ async function handleSubmit(event) {
   const existingError = document.getElementById('title-error');
   if (existingError) existingError.remove();
 
+  const allProjects = await getAllProjects();
+  const duplicate = allProjects.find(p => {
+    if (_editingId && p.id === _editingId) return false;
+    const parsed = parseProject(p.content);
+    return parsed.title.toLowerCase() === title.toLowerCase();
+  });
+  if (duplicate) {
+    const errorEl = createElement('p', { className: 'error-message', id: 'title-error' }, 'A project with this name already exists.');
+    titleInput.insertAdjacentElement('afterend', errorEl);
+    return;
+  }
+
   const content = serializeFields(title, _fields);
 
   try {
@@ -274,11 +286,14 @@ export async function renderProjectForm(projectId) {
 
   if (projectId) {
     const project = await getProject(projectId);
-    if (project) {
-      const parsed = deserializeContent(project.content);
-      if (titleInput) titleInput.value = parsed.title;
-      _fields = parsed.fields;
+    if (!project) {
+      showToast('Project not found', 'error');
+      navigate('#/');
+      return;
     }
+    const parsed = deserializeContent(project.content);
+    if (titleInput) titleInput.value = parsed.title;
+    _fields = parsed.fields;
   } else {
     if (titleInput) titleInput.value = '';
   }

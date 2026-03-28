@@ -165,4 +165,11 @@ describe('renderProjectDashboard', () => {
     document.querySelector('#sample-list .sample-card').click();
     expect(navigate).toHaveBeenCalledWith('#/sample/s1');
   });
+
+  it('redirects to home with toast when project not found', async () => {
+    getProject.mockResolvedValue(undefined);
+    await renderProjectDashboard('nonexistent-id');
+    expect(navigate).toHaveBeenCalledWith('#/');
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('not found'), 'error');
+  });
 });
