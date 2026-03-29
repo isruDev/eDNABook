@@ -16,6 +16,15 @@ vi.mock('../js/ui.js', () => ({
   showToast: vi.fn(),
 }));
 
+vi.mock('../js/views/more-modal.js', () => ({
+  openMoreModal: vi.fn(),
+}));
+
+vi.mock('../js/views/settings.js', () => ({
+  applyTheme: vi.fn(),
+  applyScale: vi.fn(),
+}));
+
 import { parseRoute, init } from '../js/app.js';
 
 describe('parseRoute', () => {
@@ -79,6 +88,14 @@ describe('parseRoute', () => {
 
   it('maps #/about to about route', () => {
     expect(parseRoute('#/about')).toEqual({ route: 'about', params: {} });
+  });
+
+  it('maps #/settings to settings route', () => {
+    expect(parseRoute('#/settings')).toEqual({ route: 'settings', params: {} });
+  });
+
+  it('maps #/changelog to changelog route', () => {
+    expect(parseRoute('#/changelog')).toEqual({ route: 'changelog', params: {} });
   });
 });
 

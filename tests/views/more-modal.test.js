@@ -29,15 +29,16 @@ describe('openMoreModal', () => {
     expect(document.getElementById(labelId)).not.toBeNull();
   });
 
-  it('renders three menu items', () => {
+  it('renders four menu items', () => {
     openMoreModal();
     const items = document.querySelectorAll('.more-modal-item');
-    expect(items).toHaveLength(3);
+    expect(items).toHaveLength(4);
   });
 
-  it('menu item labels are Offline Access (iOS), Offline Access (Android), About eDNALite', () => {
+  it('menu item labels include Settings, Offline Access, and About', () => {
     openMoreModal();
     const labels = Array.from(document.querySelectorAll('.more-modal-item')).map(el => el.textContent.trim());
+    expect(labels).toContain('Settings');
     expect(labels).toContain('Offline Access (iOS)');
     expect(labels).toContain('Offline Access (Android)');
     expect(labels).toContain('About eDNALite');

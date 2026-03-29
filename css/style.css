@@ -1630,3 +1630,275 @@ a {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ---------- Theme overrides ---------- */
+/* When data-theme="auto" (default), prefers-color-scheme in existing CSS handles everything.
+   These overrides only activate for explicit light/dark selection.
+   This is compatible with iOS/Android system dark mode -- "auto" defers to the OS. */
+[data-theme="light"] {
+  --color-primary: #1a5632;
+  --color-primary-dark: #0f3d22;
+  --color-primary-light: #2d7a4a;
+  --color-surface: #f5f7fa;
+  --color-background: #ffffff;
+  --color-border: #dde1e7;
+  --color-text: #1a1a1a;
+  --color-text-secondary: #555e6b;
+  --color-success: #2e7d32;
+  --color-error: #c62828;
+  --color-warning: #e65100;
+  --color-warning-bg: #fff3e0;
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.28);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --color-primary: #2d8a4e;
+  --color-primary-dark: #1a5632;
+  --color-primary-light: #4eba6f;
+  --color-surface: #1e1e2e;
+  --color-background: #141422;
+  --color-border: #3a3a50;
+  --color-text: #f0f0f8;
+  --color-text-secondary: #b0b0c0;
+  --color-success: #4caf50;
+  --color-error: #ef5350;
+  --color-warning: #ff9800;
+  --color-warning-bg: #2a2010;
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.2);
+  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+/* Dark theme active states that were previously only in @media prefers-color-scheme */
+[data-theme="dark"] .project-card:active,
+[data-theme="dark"] .sample-card:active {
+  background: #252538;
+}
+
+[data-theme="dark"] .btn-danger:hover {
+  background: rgba(239, 83, 80, 0.15);
+}
+
+[data-theme="dark"] .btn-remove-field:hover {
+  background: rgba(239, 83, 80, 0.15);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+[data-theme="dark"] #delete-project-btn {
+  border-color: rgba(239, 83, 80, 0.4);
+}
+
+[data-theme="dark"] #delete-project-btn:hover {
+  background: rgba(239, 83, 80, 0.15);
+}
+
+[data-theme="dark"] .gps-locking { color: #fbbf24; }
+[data-theme="dark"] .gps-locked { color: #86efac; }
+[data-theme="dark"] .gps-error { color: #fca5a5; }
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .sample-card {
+  border-width: 2px;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  border-width: 2px;
+}
+
+/* ---------- UI Scale (sample entry form) ---------- */
+:root {
+  --ui-scale: 1;
+}
+
+[data-view="sample-entry"] .form-field label,
+[data-view="sample-edit"] .form-field label {
+  font-size: calc(1rem * var(--ui-scale));
+}
+
+[data-view="sample-entry"] .form-field input[type="text"],
+[data-view="sample-entry"] .form-field input[type="datetime-local"],
+[data-view="sample-entry"] .form-field textarea,
+[data-view="sample-edit"] .form-field input[type="text"],
+[data-view="sample-edit"] .form-field input[type="datetime-local"],
+[data-view="sample-edit"] .form-field textarea {
+  font-size: calc(1rem * var(--ui-scale));
+  min-height: calc(48px * var(--ui-scale));
+  padding: calc(var(--spacing-sm) * var(--ui-scale)) var(--spacing-md);
+}
+
+[data-view="sample-entry"] .checkbox-field,
+[data-view="sample-edit"] .checkbox-field {
+  transform: scale(var(--ui-scale));
+  transform-origin: left center;
+}
+
+[data-view="sample-entry"] .readonly-value,
+[data-view="sample-edit"] .readonly-value {
+  font-size: calc(1rem * var(--ui-scale));
+}
+
+[data-view="sample-entry"] #gps-value,
+[data-view="sample-edit"] #edit-gps-value {
+  font-size: calc(0.9375rem * var(--ui-scale));
+}
+
+/* ---------- Settings page ---------- */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+}
+
+.settings-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.settings-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.settings-description {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.settings-toggle-group {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.settings-toggle-btn {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 var(--spacing-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  background: var(--color-background);
+  color: var(--color-text);
+  border: none;
+  cursor: pointer;
+  transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.settings-toggle-btn + .settings-toggle-btn {
+  border-left: 1px solid var(--color-border);
+}
+
+.settings-toggle-btn.active {
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.settings-toggle-btn:not(.active):hover {
+  background: var(--color-surface);
+}
+
+.settings-scale-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.settings-scale-btn {
+  width: 48px;
+  min-height: 48px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 0;
+}
+
+.settings-scale-btn#scale-reset-btn {
+  width: auto;
+  padding: 0 var(--spacing-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.settings-scale-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  min-width: 60px;
+  text-align: center;
+  color: var(--color-text);
+}
+
+.settings-changelog-btn {
+  width: 100%;
+}
+
+/* ---------- Changelog page ---------- */
+.changelog-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+}
+
+.changelog-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.changelog-loading,
+.changelog-empty {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+}
+
+.changelog-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.changelog-entry {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.changelog-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.changelog-sha {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.changelog-date {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.changelog-message {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}

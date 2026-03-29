@@ -19,6 +19,7 @@ function navigateTo(hash) {
  * @type {Array<{ label: string, route: string }>}
  */
 const MENU_ITEMS = [
+  { label: 'Settings',                 route: '#/settings' },
   { label: 'Offline Access (iOS)',     route: '#/offline/ios' },
   { label: 'Offline Access (Android)', route: '#/offline/android' },
   { label: 'About eDNALite',           route: '#/about' },

@@ -3,6 +3,7 @@ import { showToast } from './ui.js';
 import { startGpsWatch } from './gps.js';
 import { initGpsPill } from './gps-pill.js';
 import { openMoreModal } from './views/more-modal.js';
+import { applyTheme, applyScale } from './views/settings.js';
 
 /**
  * @typedef {{ route: string, params: Record<string, string> }} ParsedRoute
@@ -69,6 +70,16 @@ const ROUTES = [
     route: 'about',
     params: () => ({}),
   },
+  {
+    pattern: /^\/settings$/,
+    route: 'settings',
+    params: () => ({}),
+  },
+  {
+    pattern: /^\/changelog$/,
+    route: 'changelog',
+    params: () => ({}),
+  },
 ];
 
 /**
@@ -127,6 +138,8 @@ export async function onRouteChange() {
     'offline-ios':        './views/offline-guide.js',
     'offline-android':    './views/offline-guide.js',
     'about':              './views/about.js',
+    'settings':           './views/settings.js',
+    'changelog':          './views/changelog.js',
   };
 
   const modulePath = VIEW_MODULES[route] ?? VIEW_MODULES['home'];
@@ -166,6 +179,12 @@ export async function onRouteChange() {
       case 'about':
         await mod.renderAbout();
         break;
+      case 'settings':
+        await mod.renderSettings();
+        break;
+      case 'changelog':
+        await mod.renderChangelog();
+        break;
     }
   } catch (err) {
     console.warn(`[router] Failed to load view for route "${route}":`, err.message);
@@ -189,6 +208,8 @@ export async function init() {
   }
 
   await initDB();
+  applyTheme();
+  applyScale();
   startGpsWatch();
   initGpsPill();
 
