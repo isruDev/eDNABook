@@ -16,9 +16,9 @@ const INSTALL_STEPS = {
     'Tap "Add" to confirm.',
   ],
   android: [
-    'Open this page in Chrome.',
+    'Open this page in Chrome and browse for at least 30 seconds.',
     'Tap the three-dot menu in the top-right corner.',
-    'Tap "Add to Home Screen" or "Install App".',
+    'Tap "Add to Home Screen" or "Install App" (may not appear until Chrome detects engagement).',
     'Tap "Add" to confirm.',
   ],
 };

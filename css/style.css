@@ -185,6 +185,9 @@ a {
   white-space: nowrap;
   text-overflow: ellipsis;
   color: #ffffff;
+  /* Prevent overlap with absolute-positioned GPS pill + More button on wider screens */
+  padding-right: 140px;
+  padding-left: 60px;
 }
 
 /* Hide the header-level back-btn and action-btn (we use view-level ones now) */
@@ -296,13 +299,15 @@ a {
   top: 0;
   left: max(var(--spacing-md), calc((100vw - 600px) / 2 + var(--spacing-md)));
   height: var(--header-height);
+  padding-top: env(safe-area-inset-top, 0px);
   z-index: 101;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding: 0 var(--spacing-sm);
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
   font-size: 0;
   line-height: 1;
   color: #ffffff;
@@ -317,14 +322,14 @@ a {
   content: '\2190';
   font-size: 1.125rem;
   line-height: 1;
-  color: #000000;
+  color: #ffffff;
 }
 
 .view .btn-back::after {
   content: 'back';
   font-size: 0.55rem;
   font-weight: 500;
-  color: #000000;
+  color: #ffffff;
   line-height: 1;
   margin-top: 1px;
   text-transform: lowercase;
@@ -539,6 +544,7 @@ a {
   top: 0;
   left: max(var(--spacing-md), calc((100vw - 600px) / 2 + var(--spacing-md)));
   height: var(--header-height);
+  padding-top: env(safe-area-inset-top, 0px);
   z-index: 101;
   display: flex;
   align-items: center;
