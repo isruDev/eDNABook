@@ -83,6 +83,7 @@ export async function renderHome() {
   }
 
   const projects = await getAllProjects();
+  clearElement(listContainer);
 
   if (projects.length === 0) {
     const emptyState = createElement('p', { className: 'empty-state' },
