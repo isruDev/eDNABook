@@ -11,10 +11,12 @@ if (typeof window !== 'undefined' && window.Papa) {
 }
 
 /**
- * Converts a field name string into a snake_case SQL column name.
+ * Converts a user-defined metadata field name into a snake_case SQL column name.
  *
  * Replaces all non-alphanumeric characters (spaces, parentheses, slashes, etc.)
- * with underscores and collapses consecutive underscores into one.
+ * with underscores and collapses consecutive underscores into one. Only applied
+ * to user-defined metadata fields — fixed columns use explicit names from
+ * FIXED_COLUMNS to preserve Darwin Core camelCase.
  *
  * @param {string} name - Human-readable field name (e.g. "GPS Accuracy").
  * @returns {string} Snake-case column name (e.g. "gps_accuracy").
@@ -29,19 +31,39 @@ function toSnakeCase(name) {
 }
 
 /**
+ * Fixed column definitions shared by CSV and SQLite exports. The four Darwin Core
+ * auto-generated fields (eventID, eventDate, decimalLatitude, decimalLongitude)
+ * preserve camelCase in both the CSV header row and the SQLite column name so
+ * exported data is drop-in compatible with GBIF, NCBI, and other DwC-aware
+ * bioinformatics pipelines per Allen's FAIR tutorial.
+ *
+ * @type {ReadonlyArray<{header: string, column: string, type: 'TEXT'|'REAL'}>}
+ */
+const FIXED_COLUMNS = Object.freeze([
+  { header: 'Project Name',     column: 'project_name',     type: 'TEXT' },
+  { header: 'eventID',          column: 'eventID',          type: 'TEXT' },
+  { header: 'eventDate',        column: 'eventDate',        type: 'TEXT' },
+  { header: 'decimalLatitude',  column: 'decimalLatitude',  type: 'REAL' },
+  { header: 'decimalLongitude', column: 'decimalLongitude', type: 'REAL' },
+  { header: 'GPS Accuracy',     column: 'gps_accuracy',     type: 'REAL' },
+  { header: 'Photo',            column: 'photo',            type: 'TEXT' },
+]);
+
+/**
  * Builds the ordered list of fixed column headers used in both CSV and SQLite exports.
  *
- * @returns {string[]} Fixed column headers: Sample ID, Date/Time, Latitude, Longitude, GPS Accuracy.
+ * @returns {string[]} Fixed column headers in declaration order.
  */
 function fixedHeaders() {
-  return ['Project Name', 'Sample ID', 'Date/Time', 'Latitude', 'Longitude', 'GPS Accuracy', 'Photo'];
+  return FIXED_COLUMNS.map((c) => c.header);
 }
 
 /**
  * Extracts a row of values from a sample in fixed-column order plus project-specific fields.
  *
  * @param {import('./db.js').Sample} sample - The sample record to serialize.
- * @param {string[]} fields - Project-specific field names from parseProject().
+ * @param {Array<{name: string, type: string}>} fields - Project-specific field definitions from parseProject().
+ * @param {string} projectTitle - Project title to emit in the Project Name column.
  * @returns {Array<string|number|null>} Ordered array of values matching the column layout.
  */
 function sampleToRow(sample, fields, projectTitle) {
@@ -61,10 +83,13 @@ function sampleToRow(sample, fields, projectTitle) {
 /**
  * Generates a CSV string from a project and its samples.
  *
- * Column order: Sample ID, Date/Time, Latitude, Longitude, GPS Accuracy, then each
- * project-specific field in the order defined in parseProject(project.content).fields.
- * Latitude, Longitude, and GPS Accuracy are raw numbers (or null); all other values
- * are strings. Uses Papa.unparse() to handle quoting and escaping.
+ * Column order: Project Name, eventID, eventDate, decimalLatitude, decimalLongitude,
+ * GPS Accuracy, Photo, then each project-specific field in the order defined in
+ * parseProject(project.content).fields. The four Darwin Core fields are emitted
+ * with exact DwC camelCase so exported CSVs are drop-in ready for GBIF/NCBI
+ * pipelines per Allen's FAIR tutorial. decimalLatitude, decimalLongitude, and
+ * GPS Accuracy are raw numbers (or null); all other values are strings.
+ * Uses Papa.unparse() to handle quoting and escaping.
  *
  * @param {import('./db.js').Project} project - The project record.
  * @param {import('./db.js').Sample[]} samples - Array of samples belonging to the project.
@@ -84,11 +109,15 @@ export function generateCSV(project, samples) {
 /**
  * Generates an in-memory SQLite database file from a project and its samples.
  *
- * Creates a `samples` table whose columns mirror the CSV layout. Latitude,
- * Longitude, and GPS Accuracy columns are REAL; all other columns are TEXT.
- * Column names are the snake_case versions of the CSV headers. All rows are
- * inserted via parameterised statements to avoid SQL injection from field names
- * containing special characters.
+ * Creates a `samples` table whose columns mirror the CSV layout. The four
+ * Darwin Core fixed columns (eventID, eventDate, decimalLatitude, decimalLongitude)
+ * preserve exact camelCase as SQLite column names. Non-DwC fixed columns use
+ * snake_case (project_name, gps_accuracy, photo). User-defined metadata fields
+ * are converted to snake_case via toSnakeCase(). decimalLatitude, decimalLongitude,
+ * and GPS Accuracy are REAL; all other columns are TEXT. Column names from
+ * FIXED_COLUMNS are hardcoded (no injection risk); user-defined metadata column
+ * names pass through toSnakeCase() before being embedded in the CREATE TABLE
+ * statement. Row values are always inserted via parameterised statements.
  *
  * @param {import('./db.js').Project} project - The project record.
  * @param {import('./db.js').Sample[]} samples - Array of samples belonging to the project.
@@ -103,19 +132,6 @@ export function generateCSV(project, samples) {
  */
 export async function generateSQLite(project, samples, locateFile = () => './lib/sql-wasm.wasm') {
   const { title, fields } = parseProject(project.content);
-  const allHeaders = [...fixedHeaders(), ...fields.map(f => f.name)];
-
-  /** @type {Record<string, 'TEXT'|'REAL'>} */
-  const colTypes = {
-    'Project Name': 'TEXT',
-    'Sample ID': 'TEXT',
-    'Date/Time': 'TEXT',
-    'Latitude': 'REAL',
-    'Longitude': 'REAL',
-    'GPS Accuracy': 'REAL',
-    'Photo': 'TEXT',
-  };
-  fields.forEach((f) => { colTypes[f.name] = 'TEXT'; });
 
   // initSqlJs loaded via <script> tag (UMD, sets window.initSqlJs)
   // In test env, vitest alias provides it as an ESM import
@@ -123,14 +139,15 @@ export async function generateSQLite(project, samples, locateFile = () => './lib
   const SQL = await loader({ locateFile });
   const db = new SQL.Database();
 
-  const colDefs = allHeaders
-    .map((h) => `${toSnakeCase(h)} ${colTypes[h]}`)
-    .join(', ');
+  const fixedColDefs = FIXED_COLUMNS.map((c) => `"${c.column}" ${c.type}`);
+  const metaColDefs = fields.map((f) => `"${toSnakeCase(f.name)}" TEXT`);
+  const colDefs = [...fixedColDefs, ...metaColDefs].join(', ');
 
   db.run(`CREATE TABLE samples (${colDefs})`);
 
   if (samples.length > 0) {
-    const placeholders = allHeaders.map(() => '?').join(', ');
+    const totalCols = FIXED_COLUMNS.length + fields.length;
+    const placeholders = new Array(totalCols).fill('?').join(', ');
     const stmt = db.prepare(`INSERT INTO samples VALUES (${placeholders})`);
 
     for (const sample of samples) {

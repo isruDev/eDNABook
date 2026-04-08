@@ -225,7 +225,7 @@ describe('integration: export generates CSV from saved samples', () => {
     const samples = await getSamplesByProject(project.id, db);
     const fetched = await getProject(project.id, db);
 
-    Papa.unparse.mockReturnValue('Sample ID,Date/Time,Latitude,Longitude,GPS Accuracy,Collector,Site\nEXP-001,2026-03-17T10:00:00.000Z,51.5074,-0.1278,3.5,Alice,Thames North');
+    Papa.unparse.mockReturnValue('Project Name,eventID,eventDate,decimalLatitude,decimalLongitude,GPS Accuracy,Photo,Collector,Site\nTest,EXP-001,2026-03-17T10:00:00.000Z,51.5074,-0.1278,3.5,,Alice,Thames North');
 
     const csv = generateCSV(fetched, samples);
 
@@ -234,15 +234,15 @@ describe('integration: export generates CSV from saved samples', () => {
 
     // Verify headers row
     const headers = callArg[0];
-    expect(headers).toContain('Sample ID');
-    expect(headers).toContain('Date/Time');
-    expect(headers).toContain('Latitude');
-    expect(headers).toContain('Longitude');
+    expect(headers).toContain('eventID');
+    expect(headers).toContain('eventDate');
+    expect(headers).toContain('decimalLatitude');
+    expect(headers).toContain('decimalLongitude');
     expect(headers).toContain('GPS Accuracy');
     expect(headers).toContain('Collector');
     expect(headers).toContain('Site');
 
-    // Verify data row maps correctly (index 0 = Project Name, 1 = Sample ID, ...)
+    // Verify data row maps correctly (index 0 = Project Name, 1 = eventID, ...)
     const dataRow = callArg[1];
     expect(dataRow[1]).toBe('EXP-001');
     expect(dataRow[3]).toBe(51.5074);
@@ -260,7 +260,7 @@ describe('integration: export generates CSV from saved samples', () => {
     const fetched = await getProject(project.id, db);
     const samples = await getSamplesByProject(project.id, db);
 
-    Papa.unparse.mockReturnValue('Sample ID,Date/Time,Latitude,Longitude,GPS Accuracy,Depth,Temp');
+    Papa.unparse.mockReturnValue('Project Name,eventID,eventDate,decimalLatitude,decimalLongitude,GPS Accuracy,Photo,Depth,Temp');
 
     generateCSV(fetched, samples);
 
@@ -294,8 +294,8 @@ describe('integration: export generates CSV from saved samples', () => {
 
     const callArg = Papa.unparse.mock.calls[0][0];
     const dataRow = callArg[1];
-    expect(dataRow[3]).toBeNull(); // Latitude
-    expect(dataRow[4]).toBeNull(); // Longitude
+    expect(dataRow[3]).toBeNull(); // decimalLatitude
+    expect(dataRow[4]).toBeNull(); // decimalLongitude
     expect(dataRow[5]).toBeNull(); // GPS Accuracy
 
     db.close();

@@ -92,10 +92,10 @@ describe('generateCSV', () => {
     const callArg = Papa.unparse.mock.calls[0][0];
     expect(callArg[0]).toEqual([
       'Project Name',
-      'Sample ID',
-      'Date/Time',
-      'Latitude',
-      'Longitude',
+      'eventID',
+      'eventDate',
+      'decimalLatitude',
+      'decimalLongitude',
       'GPS Accuracy',
       'Photo',
       'Site',
@@ -110,10 +110,10 @@ describe('generateCSV', () => {
     const rows = Papa.unparse.mock.calls[0][0];
     const firstData = rows[1];
     expect(firstData[0]).toBe('River Study');              // Project Name
-    expect(firstData[1]).toBe('S-001');                    // Sample ID
-    expect(firstData[2]).toBe('2026-01-15T09:30:00');     // Date/Time
-    expect(firstData[3]).toBe(47.6062);                   // Latitude
-    expect(firstData[4]).toBe(-122.3321);                 // Longitude
+    expect(firstData[1]).toBe('S-001');                    // eventID
+    expect(firstData[2]).toBe('2026-01-15T09:30:00');     // eventDate
+    expect(firstData[3]).toBe(47.6062);                   // decimalLatitude
+    expect(firstData[4]).toBe(-122.3321);                 // decimalLongitude
     expect(firstData[5]).toBe(5);                         // GPS Accuracy
     expect(firstData[6]).toBe('River_Study_S-001.jpg');   // Photo
     expect(firstData[7]).toBe('River A');                  // Site
@@ -126,8 +126,8 @@ describe('generateCSV', () => {
 
     const rows = Papa.unparse.mock.calls[0][0];
     const secondData = rows[2];
-    expect(secondData[3]).toBeNull(); // Latitude
-    expect(secondData[4]).toBeNull(); // Longitude
+    expect(secondData[3]).toBeNull(); // decimalLatitude
+    expect(secondData[4]).toBeNull(); // decimalLongitude
     expect(secondData[5]).toBeNull(); // GPS Accuracy
     expect(secondData[6]).toBe('');   // Photo (no photo)
   });
@@ -204,10 +204,10 @@ describe('generateSQLite', () => {
     const colNames = res.values.map((row) => row[1]);
 
     expect(colNames[0]).toBe('project_name');
-    expect(colNames).toContain('sample_id');
-    expect(colNames).toContain('date_time');
-    expect(colNames).toContain('latitude');
-    expect(colNames).toContain('longitude');
+    expect(colNames).toContain('eventID');
+    expect(colNames).toContain('eventDate');
+    expect(colNames).toContain('decimalLatitude');
+    expect(colNames).toContain('decimalLongitude');
     expect(colNames).toContain('gps_accuracy');
     expect(colNames).toContain('photo');
     expect(colNames).toContain('site');
@@ -224,11 +224,11 @@ describe('generateSQLite', () => {
     // PRAGMA table_info columns: cid, name, type, notnull, dflt_value, pk
     const colMap = Object.fromEntries(res.values.map((row) => [row[1], row[2]]));
 
-    expect(colMap['latitude']).toBe('REAL');
-    expect(colMap['longitude']).toBe('REAL');
+    expect(colMap['decimalLatitude']).toBe('REAL');
+    expect(colMap['decimalLongitude']).toBe('REAL');
     expect(colMap['gps_accuracy']).toBe('REAL');
-    expect(colMap['sample_id']).toBe('TEXT');
-    expect(colMap['date_time']).toBe('TEXT');
+    expect(colMap['eventID']).toBe('TEXT');
+    expect(colMap['eventDate']).toBe('TEXT');
     db.close();
   });
 
@@ -237,7 +237,7 @@ describe('generateSQLite', () => {
 
     const SQL = await initSqlJs({ locateFile: testLocateFile });
     const db = new SQL.Database(bytes);
-    const [res] = db.exec("SELECT latitude FROM samples WHERE sample_id = 'S-002'");
+    const [res] = db.exec("SELECT decimalLatitude FROM samples WHERE eventID = 'S-002'");
     expect(res.values[0][0]).toBeNull();
     db.close();
   });
