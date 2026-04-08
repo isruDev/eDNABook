@@ -11,5 +11,7 @@ CLAUDE.md
 .superpowers/
 .playwright-mcp/
 test-results/
-dark-mode-*.png
+# Playwright MCP debug screenshots saved to the repo root during dev sessions.
+# Does not touch icons/ or any PNG inside a subdirectory.
+/*.png
 docs/superpowers/

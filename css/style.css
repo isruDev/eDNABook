@@ -591,6 +591,8 @@ a {
 
 /* ---------- Empty state ---------- */
 .empty-state {
+  display: block;
+  width: 100%;
   text-align: center;
   color: var(--color-text-secondary);
   padding: var(--spacing-xl) var(--spacing-md);
@@ -598,6 +600,34 @@ a {
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
   margin-top: var(--spacing-md);
+  font-family: inherit;
+  background: transparent;
+}
+
+/* Empty-state rendered as a clickable New Project CTA. */
+button.empty-state,
+.empty-state-cta {
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+button.empty-state:hover,
+.empty-state-cta:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  background: rgba(26, 86, 50, 0.06);
+}
+
+button.empty-state:active,
+.empty-state-cta:active {
+  opacity: 0.8;
+}
+
+@media (prefers-color-scheme: dark) {
+  button.empty-state:hover,
+  .empty-state-cta:hover {
+    background: rgba(45, 138, 78, 0.12);
+  }
 }
 
 .empty-state p + p {
@@ -1265,12 +1295,15 @@ a {
 .checkbox-field input[type="checkbox"] {
   width: 44px;
   height: 44px;
+  flex-shrink: 0;
   accent-color: var(--color-primary);
 }
 
 .checkbox-label {
   font-size: 1.8rem;
   cursor: pointer;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Template Button ---------- */

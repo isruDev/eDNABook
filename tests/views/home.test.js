@@ -142,6 +142,16 @@ describe('renderHome', () => {
     expect(emptyState).not.toBeNull();
   });
 
+  it('empty state acts as a New Project button when clicked', async () => {
+    getAllProjects.mockResolvedValue([]);
+    await renderHome();
+    const emptyState = document.querySelector('.empty-state');
+    expect(emptyState).not.toBeNull();
+    // Must be interactive — either a button element or have a click handler wired
+    emptyState.click();
+    expect(navigate).toHaveBeenCalledWith('#/project/new');
+  });
+
   it('does not render empty state when projects exist', async () => {
     getAllProjects.mockResolvedValue([
       { id: 'p1', content: 'Survey\nField1', updatedAt: '2026-03-17T10:00:00.000Z' },
@@ -171,59 +181,12 @@ describe('renderHome', () => {
     expect(navigate).toHaveBeenCalledWith('#/project/new');
   });
 
-  it('renders template buttons on home screen', async () => {
+  it('does not render a template button in the header (moved to More menu)', async () => {
+    // Regression: Allen wanted the "New Sample Project" button removed from
+    // the header and surfaced in the More modal instead.
     getAllProjects.mockResolvedValue([]);
     await renderHome();
     const templateBtn = document.querySelector('.header-template-btn');
-    expect(templateBtn).not.toBeNull();
-    expect(templateBtn.textContent).toContain('Sample Project');
-  });
-
-  it('clicking template button creates project and navigates to dashboard', async () => {
-    getAllProjects.mockResolvedValue([]);
-    createProject.mockResolvedValue({ id: 'new-proj-1' });
-    await renderHome();
-
-    const templateBtn = document.querySelector('.header-template-btn');
-    templateBtn.click();
-    await new Promise(r => setTimeout(r, 0));
-
-    expect(createProject).toHaveBeenCalledWith(expect.stringContaining('Sample Project'));
-    expect(navigate).toHaveBeenCalledWith('#/project/new-proj-1');
-  });
-
-  it('template button appends number when name already exists', async () => {
-    getAllProjects.mockResolvedValue([
-      { id: 'p1', content: 'Sample Project\nField1', updatedAt: '2026-01-01' },
-    ]);
-    getSamplesByProject.mockResolvedValue([]);
-    createProject.mockResolvedValue({ id: 'new-proj-2' });
-    await renderHome();
-
-    const templateBtn = document.querySelector('.header-template-btn');
-    templateBtn.click();
-    await new Promise(r => setTimeout(r, 0));
-
-    const createdContent = createProject.mock.calls[0][0];
-    const firstLine = createdContent.split('\n')[0];
-    expect(firstLine).toBe('Sample Project 2');
-  });
-
-  it('template button increments number past existing numbered projects', async () => {
-    getAllProjects.mockResolvedValue([
-      { id: 'p1', content: 'Sample Project\nField1', updatedAt: '2026-01-01' },
-      { id: 'p2', content: 'Sample Project 2\nField1', updatedAt: '2026-01-02' },
-    ]);
-    getSamplesByProject.mockResolvedValue([]);
-    createProject.mockResolvedValue({ id: 'new-proj-3' });
-    await renderHome();
-
-    const templateBtn = document.querySelector('.header-template-btn');
-    templateBtn.click();
-    await new Promise(r => setTimeout(r, 0));
-
-    const createdContent = createProject.mock.calls[0][0];
-    const firstLine = createdContent.split('\n')[0];
-    expect(firstLine).toBe('Sample Project 3');
+    expect(templateBtn).toBeNull();
   });
 });

@@ -213,10 +213,17 @@ export async function init() {
   startGpsWatch();
   initGpsPill();
 
-  const appTitle = document.getElementById('app-title');
-  if (appTitle) {
-    appTitle.style.cursor = 'pointer';
-    appTitle.addEventListener('click', () => { window.location.hash = '#/'; });
+  // Delegate banner clicks across the entire header, not just the h1 text.
+  // On mobile the h1 only covers ~27px of the 56px header, so tapping the
+  // empty vertical space used to do nothing. Now any tap inside the header
+  // that is not on a button navigates home.
+  const appHeader = document.getElementById('app-header');
+  if (appHeader) {
+    appHeader.style.cursor = 'pointer';
+    appHeader.addEventListener('click', (event) => {
+      if (event.target.closest('button')) return;
+      window.location.hash = '#/';
+    });
   }
 
   const moreBtn = document.getElementById('more-btn');

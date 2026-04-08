@@ -1,7 +1,6 @@
-import { getAllProjects, getSamplesByProject, createProject, parseProject } from '../db.js';
+import { getAllProjects, getSamplesByProject, parseProject } from '../db.js';
 import { showView, formatDate, clearElement, createElement } from '../ui.js';
 import { navigate } from '../app.js';
-import { TEMPLATES } from '../templates.js';
 
 /**
  * Builds a single project card element.
@@ -60,35 +59,26 @@ export async function renderHome() {
       navigate('#/project/new');
     });
     actionsContainer.appendChild(newBtn);
-
-    // Template buttons in header next to New Project
-    for (const template of TEMPLATES) {
-      const btn = createElement('button', { className: 'btn-primary header-action-btn header-template-btn' }, '');
-      btn.innerHTML = `<span class="btn-label-full">New ${template.name}</span><span class="btn-label-short">Sample</span>`;
-      btn.addEventListener('click', async () => {
-        const existing = await getAllProjects();
-        const existingTitles = new Set(existing.map(p => parseProject(p.content).title));
-        let name = template.name;
-        if (existingTitles.has(name)) {
-          let n = 2;
-          while (existingTitles.has(`${template.name} ${n}`)) n++;
-          name = `${template.name} ${n}`;
-        }
-        const content = template.content.replace(template.name, name);
-        const project = await createProject(content);
-        navigate(`#/project/${project.id}`);
-      });
-      actionsContainer.appendChild(btn);
-    }
+    // Note: the "New Sample Project" template button used to live here, but
+    // it moved to the More modal per Allen's UX request to reduce header
+    // clutter.
   }
 
   const projects = await getAllProjects();
   clearElement(listContainer);
 
   if (projects.length === 0) {
-    const emptyState = createElement('p', { className: 'empty-state' },
-      'No projects yet. Tap "New Project" to get started.'
-    );
+    // Make the empty state itself a clickable New Project CTA so users aren't
+    // forced to scan the header for the button — especially on mobile where
+    // the header buttons are visually cramped.
+    const emptyState = createElement('button', {
+      type: 'button',
+      className: 'empty-state empty-state-cta',
+      'aria-label': 'Create your first project',
+    }, 'No projects yet. Tap here to create your first project.');
+    emptyState.addEventListener('click', () => {
+      navigate('#/project/new');
+    });
     listContainer.appendChild(emptyState);
     return;
   }

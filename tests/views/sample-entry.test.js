@@ -296,4 +296,23 @@ describe('renderEntryForm', () => {
     document.getElementById('cancel-sample-btn').click();
     expect(navigate).toHaveBeenCalledWith('#/project/proj-1');
   });
+
+  it('does not leak duplicate #photo-section nodes when rendered multiple times', async () => {
+    // Regression: sample-entry.js appended photoSection as a sibling of
+    // #metadata-fields via metaContainer.after(), but clearElement() only wiped
+    // the contents of #metadata-fields, leaving the prior photo section behind
+    // on re-entry. Each re-render stacked another #photo-section and another
+    // Add Photo button in the DOM. Fixed by removing any existing photo section
+    // before inserting the new one.
+    getCurrentPosition.mockResolvedValue(null);
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-101');
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-102');
+
+    const photoSections = document.querySelectorAll('#photo-section');
+    expect(photoSections).toHaveLength(1);
+
+    const addPhotoButtons = document.querySelectorAll('#add-photo-btn');
+    expect(addPhotoButtons).toHaveLength(1);
+  });
 });

@@ -221,7 +221,12 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
     metaContainer.appendChild(wrapper);
   });
 
-  // Photo section
+  // Photo section — sibling of #metadata-fields, so clearElement(metaContainer)
+  // does NOT remove it. Explicitly drop any leftover from a prior render or
+  // every re-entry stacks another photo section in the DOM.
+  const staleSection = document.getElementById('photo-section');
+  if (staleSection) staleSection.remove();
+
   let currentPhoto = photoFile;
   const photoSection = document.createElement('div');
   photoSection.id = 'photo-section';

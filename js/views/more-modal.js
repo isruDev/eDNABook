@@ -1,4 +1,6 @@
 // js/views/more-modal.js
+import { getAllProjects, createProject, parseProject } from '../db.js';
+import { TEMPLATES } from '../templates.js';
 
 /**
  * Navigates to a hash route by setting window.location.hash directly.
@@ -13,12 +15,45 @@ function navigateTo(hash) {
 }
 
 /**
- * Menu item definitions for the More modal.
- * Each entry maps a display label to a hash route.
+ * Creates a new project from a template, resolving name collisions by
+ * appending a number suffix (case-insensitive comparison against existing
+ * project titles). Race-safe via the caller's button-disabled guard — no
+ * internal latching needed because the only entry point is a modal menu
+ * item that is closed after the async work completes.
  *
- * @type {Array<{ label: string, route: string }>}
+ * @param {import('../templates.js').ProjectTemplate} template - The template to instantiate.
+ * @returns {Promise<{id: string}>} The newly created project record.
+ */
+async function createProjectFromTemplate(template) {
+  const existing = await getAllProjects();
+  const existingTitlesLower = new Set(
+    existing.map((p) => parseProject(p.content).title.toLowerCase())
+  );
+  let name = template.name;
+  if (existingTitlesLower.has(name.toLowerCase())) {
+    let n = 2;
+    while (existingTitlesLower.has(`${template.name} ${n}`.toLowerCase())) n++;
+    name = `${template.name} ${n}`;
+  }
+  const content = template.content.replace(template.name, name);
+  return createProject(content);
+}
+
+/**
+ * Menu item definitions for the More modal.
+ * Each entry has a display label plus either a hash route (for navigation)
+ * or an async action function (for side-effects like creating a project).
+ *
+ * @type {Array<{ label: string, route?: string, action?: () => Promise<void> }>}
  */
 const MENU_ITEMS = [
+  {
+    label: 'Create Sample Project',
+    action: async () => {
+      const project = await createProjectFromTemplate(TEMPLATES[0]);
+      navigateTo(`#/project/${project.id}`);
+    },
+  },
   { label: 'Settings',                 route: '#/settings' },
   { label: 'Offline Access (iOS)',     route: '#/offline/ios' },
   { label: 'Offline Access (Android)', route: '#/offline/android' },
@@ -91,9 +126,22 @@ export function openMoreModal() {
     const btn = document.createElement('button');
     btn.className = 'more-modal-item';
     btn.textContent = item.label;
-    btn.addEventListener('click', () => {
-      closeMoreModal();
-      navigateTo(item.route);
+    btn.addEventListener('click', async () => {
+      // Latch rapid taps: disable the button for the duration of the work.
+      // Navigation items finish synchronously; action items await async work
+      // before closing the modal so the UI stays visible while the project
+      // is being written.
+      if (btn.disabled) return;
+      btn.disabled = true;
+      try {
+        if (item.action) {
+          await item.action();
+        } else if (item.route) {
+          navigateTo(item.route);
+        }
+      } finally {
+        closeMoreModal();
+      }
     });
 
     li.appendChild(btn);

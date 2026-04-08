@@ -99,24 +99,51 @@ describe('parseRoute', () => {
   });
 });
 
-describe('clickable title', () => {
+describe('clickable header banner', () => {
   beforeEach(() => {
     document.body.innerHTML = `
       <header class="app-header" id="app-header">
+        <button class="btn-back" id="back-btn" style="display:none" aria-label="Back"></button>
         <h1 id="app-title">eDNALite</h1>
+        <button class="btn-icon" id="header-action-btn" style="display:none" aria-label="Action"></button>
+        <button class="more-btn" id="more-btn" aria-label="More options">More</button>
       </header>
       <main id="main-content"></main>
     `;
     window.location.hash = '';
   });
 
-  it('app-title h1 has cursor pointer style and navigates home on click', async () => {
+  it('app-title h1 navigates home on click', async () => {
     await init();
-
+    window.location.hash = '#/somewhere';
     const title = document.getElementById('app-title');
-    expect(title.style.cursor).toBe('pointer');
-
     title.click();
     expect(window.location.hash).toBe('#/');
+  });
+
+  it('clicking header dead space (not on any button) navigates home', async () => {
+    // Regression: the h1 only covers ~27px of the 56px header on mobile, so
+    // Allen reported that tapping above/below the text did nothing. The whole
+    // banner should navigate home.
+    await init();
+    window.location.hash = '#/somewhere';
+    const header = document.getElementById('app-header');
+    header.click();
+    expect(window.location.hash).toBe('#/');
+  });
+
+  it('clicking the More button does NOT navigate home', async () => {
+    // The More button has its own handler — header delegation must ignore it.
+    await init();
+    window.location.hash = '#/somewhere';
+    const moreBtn = document.getElementById('more-btn');
+    moreBtn.click();
+    expect(window.location.hash).toBe('#/somewhere');
+  });
+
+  it('header has cursor pointer to signal tappable', async () => {
+    await init();
+    const header = document.getElementById('app-header');
+    expect(header.style.cursor).toBe('pointer');
   });
 });
