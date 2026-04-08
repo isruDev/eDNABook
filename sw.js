@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edna-logger-v31';
+const CACHE_NAME = 'ednalite-v32';
 
 const PRECACHE_ASSETS = [
   './',

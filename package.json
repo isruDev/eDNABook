@@ -1,8 +1,33 @@
 {
-  "name": "edna-logger",
+  "name": "ednalite",
   "version": "1.0.0",
+  "description": "Offline-first Progressive Web App for logging environmental DNA sample metadata with Darwin Core and FAIR-compliant exports.",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "homepage": "https://isrudev.github.io/eDNABook/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/isruDev/eDNABook.git"
+  },
+  "bugs": {
+    "url": "https://github.com/isruDev/eDNABook/issues"
+  },
+  "keywords": [
+    "edna",
+    "environmental-dna",
+    "pwa",
+    "offline-first",
+    "darwin-core",
+    "fair-data",
+    "field-sampling",
+    "biodiversity",
+    "ecology",
+    "metadata",
+    "sqlite",
+    "indexeddb",
+    "citizen-science"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
