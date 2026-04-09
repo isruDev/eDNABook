@@ -1,0 +1,41 @@
+# Citation File Format (CFF) v1.2.0
+# Spec: https://citation-file-format.github.io/
+#
+# This file powers the "Cite this repository" button on GitHub and controls
+# how eDNALite appears in reference managers.
+cff-version: 1.2.0
+message: "If you use eDNALite in your research, please cite it using the metadata below."
+title: "eDNALite"
+type: software
+version: "1.0.0"
+date-released: "2026-04-08"
+url: "https://isrudev.github.io/eDNABook/"
+repository-code: "https://github.com/isruDev/eDNABook"
+license: MIT
+keywords:
+  - eDNA
+  - molecular ecology
+  - field app
+  - metadata
+  - field book
+abstract: >-
+  eDNALite is an offline-first Progressive Web App for field technicians
+  collecting environmental DNA samples. Users scan QR codes to capture sample
+  identifiers, record GPS coordinates automatically, and enter custom
+  metadata using project templates aligned with Darwin Core and MIxS-eDNA
+  terminology. Exports are Darwin Core-compliant CSV or SQLite files that
+  are ready to load directly into GBIF, NCBI, or downstream bioinformatics
+  pipelines with zero manual column renaming.
+authors:
+  - family-names: "Tian"
+    given-names: "Haolun"
+    orcid: "https://orcid.org/0000-0002-6151-1563"
+    affiliation: "Queen's University"
+  - family-names: "Schmidt"
+    given-names: "Luke"
+# Added after Zenodo mints the DOI on first release:
+# doi: "10.5281/zenodo.XXXXXXX"
+# identifiers:
+#   - type: doi
+#     value: "10.5281/zenodo.XXXXXXX"
+#     description: "Archived release on Zenodo"

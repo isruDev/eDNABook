@@ -1,0 +1,24 @@
+{
+  "title": "eDNALite",
+  "description": "<p>eDNALite is an offline-first Progressive Web App for field technicians collecting environmental DNA samples. Users scan QR codes to capture sample identifiers, record GPS coordinates automatically, and enter custom metadata using project templates aligned with Darwin Core and MIxS-eDNA terminology. Exports are Darwin Core-compliant CSV or SQLite files that are ready to load directly into GBIF, NCBI, or downstream bioinformatics pipelines with zero manual column renaming.</p>",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Tian, Haolun",
+      "orcid": "0000-0002-6151-1563",
+      "affiliation": "Queen's University"
+    },
+    {
+      "name": "Schmidt, Luke"
+    }
+  ],
+  "keywords": [
+    "eDNA",
+    "molecular ecology",
+    "field app",
+    "metadata",
+    "field book"
+  ]
+}
