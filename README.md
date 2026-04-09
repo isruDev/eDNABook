@@ -59,7 +59,7 @@ Because you used standard terminology in Step 2, the resulting flat file will fe
 
 ## Installation
 
-eDNALite is a Progressive Web App — there is nothing to install from an app store. Visit the live app, then use your browser's **Add to Home Screen** option:
+eDNALite is a Progressive Web App — there is nothing to install from an app store. Visit the [live app](https://isrudev.github.io/eDNABook/), then use your browser's **Add to Home Screen** option:
 
 - **iOS (Safari):** Tap the Share icon, then *Add to Home Screen*.
 - **Android (Chrome):** Tap the menu, then *Install app* or *Add to Home Screen*.
@@ -120,10 +120,14 @@ If you use eDNALite in published research, please cite the archived release. A D
 [Zenodo DOI pending first release]
 ```
 
+## Support
+
+Bug reports, feature requests, and questions go in the [GitHub issue tracker](https://github.com/isruDev/eDNABook/issues).
+
 ## License
 
-See [LICENSE](./LICENSE) for the full text. A license file will be added prior to the first open-source release.
+Released under the MIT License — see [LICENSE](./LICENSE) for the full text.
 
 ## Contributing
 
-Bug reports and pull requests are welcome. Please open an issue before starting non-trivial work so we can align on scope.
+Pull requests are welcome. Please open an issue before starting non-trivial work so we can align on scope.
