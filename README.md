@@ -1,5 +1,7 @@
 # eDNALite
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19477477.svg)](https://doi.org/10.5281/zenodo.19477477) [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
+
 Offline-first Progressive Web App for field technicians to log environmental DNA (eDNA) sample metadata. Set up projects with custom metadata fields, scan sample QR codes in the field, auto-capture GPS coordinates, and export FAIR-compliant datasets as CSV or SQLite.
 
 Live app: https://isrudev.github.io/eDNABook/
@@ -114,11 +116,25 @@ e2e/                Playwright end-to-end specs
 
 ## Citation
 
-If you use eDNALite in published research, please cite the archived release. A DOI will be minted via Zenodo on the first public release and added here.
+If you use eDNALite in published research, please cite the archived release. The concept DOI below always resolves to the latest version on Zenodo; use a version-specific DOI if you need to cite an exact release for reproducibility.
 
+> Tian, H., & Schmidt, L. (2026). *eDNALite*. Zenodo. https://doi.org/10.5281/zenodo.19477477
+
+BibTeX:
+
+```bibtex
+@software{tian_schmidt_2026_ednalite,
+  author    = {Tian, Haolun and Schmidt, Luke},
+  title     = {eDNALite},
+  year      = 2026,
+  month     = apr,
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.19477477},
+  url       = {https://doi.org/10.5281/zenodo.19477477}
+}
 ```
-[Zenodo DOI pending first release]
-```
+
+GitHub also supports citation export via the **Cite this repository** button on the repo sidebar, which reads from [`CITATION.cff`](./CITATION.cff).
 
 ## Support
 

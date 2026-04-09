@@ -33,9 +33,15 @@ authors:
     affiliation: "Queen's University"
   - family-names: "Schmidt"
     given-names: "Luke"
-# Added after Zenodo mints the DOI on first release:
-# doi: "10.5281/zenodo.XXXXXXX"
-# identifiers:
-#   - type: doi
-#     value: "10.5281/zenodo.XXXXXXX"
-#     description: "Archived release on Zenodo"
+# Concept DOI — always resolves to the latest version on Zenodo
+doi: "10.5281/zenodo.19477477"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.19477477"
+    description: "Concept DOI — always resolves to the latest archived release"
+  - type: doi
+    value: "10.5281/zenodo.19477478"
+    description: "Version DOI for the first archived release (v1.0-stable)"
+  - type: url
+    value: "https://github.com/isruDev/eDNABook"
+    description: "Source code repository"
