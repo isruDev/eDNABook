@@ -1,6 +1,6 @@
 # eDNALite
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19477477.svg)](https://doi.org/10.5281/zenodo.19477477) [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.19477477-1073c8?logo=doi&logoColor=white)](https://doi.org/10.5281/zenodo.19477477) [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
 
 Offline-first Progressive Web App for field technicians to log environmental DNA (eDNA) sample metadata. Set up projects with custom metadata fields, scan sample QR codes in the field, auto-capture GPS coordinates, and export FAIR-compliant datasets as CSV or SQLite.
 
