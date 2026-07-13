@@ -31,7 +31,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "hotfix": "node scripts/hotfix.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
