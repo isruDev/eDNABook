@@ -1,7 +1,7 @@
 // js/views/sample-entry.js
 import { getProject, getSampleBySampleId, createSample, updateSample } from '../db.js';
-import { projectSchema } from '../field-model.js';
-import { renderMetadataInputs, readMetadataInputs } from './metadata-inputs.js';
+import { projectSchema, missingRequired } from '../field-model.js';
+import { renderMetadataInputs, readMetadataInputs, flagMissing, missingMessage } from './metadata-inputs.js';
 import { showView, showToast, confirmDialog, vibrate } from '../ui.js';
 import { navigate } from '../app.js';
 import { startScanner, stopScanner } from '../scanner.js';
@@ -353,10 +353,16 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
 
   form.onsubmit = async (e) => {
     e.preventDefault();
-    stopFormGpsUpdates();
 
     const scannedAt = document.getElementById('sample-datetime').value;
     const metadata = readMetadataInputs(metaContainer);
+    const missing = missingRequired(fields, metadata);
+    flagMissing(metaContainer, fields, missing);
+    if (missing.length > 0) {
+      showToast(missingMessage(missing), 'error');
+      return;
+    }
+    stopFormGpsUpdates();
 
     const payload = {
       sampleId,

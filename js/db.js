@@ -178,22 +178,17 @@ export async function getProject(id, db) {
 }
 
 /**
- * Updates a project's content and refreshes its updatedAt timestamp, moving
- * stored sample values to renamed fields in the same transaction.
+ * Updates a v1 project's content string and refreshes its updatedAt timestamp.
  *
  * @param {string} id - The project UUID to update.
  * @param {string} content - New content string.
  * @param {import('idb').IDBPDatabase} [db] - Open database instance.
- * @param {Array<{ from: string, to: string }>} [renames=[]] - Metadata fields
- *   renamed in this edit. Each project sample's value moves from `from` to `to`.
  * @returns {Promise<Project>} The updated project record.
  * @throws {Error} If no project exists with the given id.
- * @remarks createdAt is immutable. The project write and all sample writes
- * share one transaction, so a failure leaves both unchanged.
- * @example
- * await updateProject(id, 'Survey\nLocation', undefined, [{ from: 'Site', to: 'Location' }]);
+ * @remarks createdAt is immutable. The project form saves through
+ * updateProjectSchema, which keeps field keys stable across renames.
  */
-export async function updateProject(id, content, db, renames = []) {
+export async function updateProject(id, content, db) {
   const conn = db ?? await initDB();
   const existing = await conn.get('projects', id);
   if (!existing) {
@@ -204,44 +199,8 @@ export async function updateProject(id, content, db, renames = []) {
     content,
     updatedAt: new Date().toISOString(),
   };
-  const tx = conn.transaction(['projects', 'samples'], 'readwrite');
-  const writes = [tx.objectStore('projects').put(updated)];
-  if (renames.length > 0) {
-    const samples = await tx.objectStore('samples').index('projectId').getAll(id);
-    for (const sample of samples) {
-      writes.push(tx.objectStore('samples').put({
-        ...sample,
-        metadata: renameMetadataKeys(sample.metadata ?? {}, renames),
-      }));
-    }
-  }
-  await Promise.all(writes);
-  await tx.done;
+  await conn.put('projects', updated);
   return updated;
-}
-
-/**
- * Moves metadata values from old field names to new ones.
- *
- * @param {Record<string, string>} metadata - A sample's stored metadata.
- * @param {Array<{ from: string, to: string }>} renames - Field renames to apply.
- * @returns {Record<string, string>} New metadata object with values moved.
- * @remarks Renames are applied from a snapshot, so swaps (A->B, B->A) work.
- * A rename is skipped when the new name already holds a non-empty value that
- * is not itself being renamed away; the old key then keeps its value, so no
- * data is ever overwritten.
- */
-function renameMetadataKeys(metadata, renames) {
-  const fromKeys = new Set(renames.map((r) => r.from));
-  const applicable = renames.filter((r) => {
-    if (!(r.from in metadata)) return false;
-    const blocked = (metadata[r.to] ?? '') !== '' && !fromKeys.has(r.to);
-    return !blocked;
-  });
-  const result = { ...metadata };
-  applicable.forEach((r) => { delete result[r.from]; });
-  applicable.forEach((r) => { result[r.to] = metadata[r.from]; });
-  return result;
 }
 
 /**

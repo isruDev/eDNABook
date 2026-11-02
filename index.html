@@ -46,7 +46,14 @@
             <label for="project-title-input">Project Title</label>
             <input type="text" id="project-title-input" placeholder="e.g., River Survey 2026" />
           </div>
-          <h3 class="section-title">Metadata Fields</h3>
+          <div id="preset-picker" class="preset-picker" aria-label="Start from a template"></div>
+          <h3 class="section-title">Always Recorded</h3>
+          <div id="builtin-fields" class="field-chips"></div>
+          <div id="preset-section">
+            <h3 class="section-title">Template Fields <span class="section-hint">tap to turn off</span></h3>
+            <div id="preset-fields" class="field-chips"></div>
+          </div>
+          <h3 class="section-title">Custom Fields</h3>
           <div id="field-list"></div>
           <button type="button" class="btn-secondary" id="add-field-btn">Add Field</button>
           <button type="submit" class="btn-primary" id="save-project-btn">Save Project</button>

@@ -366,6 +366,46 @@ describe('renderEntryForm', () => {
     expect(updateSample).toHaveBeenCalledWith('existing-s1', expect.objectContaining({ photoFilename: 'new.jpg' }));
   });
 
+  it('blocks saving while a required field or QA/QC box is empty, and says which', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    await renderEntryForm('proj-1', [
+      { key: 'samplers', label: 'Sampler(s)', type: 'text', status: 'required' },
+      { key: 'qaqc_gloves_used', label: 'QA/QC: Sterile Gloves Worn?', type: 'checkbox', status: 'qaqc' },
+    ], 'S-100');
+
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(createSample).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('Sampler(s)'), 'error');
+    expect(document.querySelectorAll('.field-missing')).toHaveLength(2);
+  });
+
+  it('saves once required fields and QA/QC boxes are filled', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    await renderEntryForm('proj-1', [
+      { key: 'samplers', label: 'Sampler(s)', type: 'text', status: 'required' },
+      { key: 'qaqc_gloves_used', label: 'QA/QC: Sterile Gloves Worn?', type: 'checkbox', status: 'qaqc' },
+    ], 'S-100');
+    document.querySelector('[data-field="samplers"]').value = 'LS';
+    document.querySelector('[data-field="qaqc_gloves_used"]').checked = true;
+
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(createSample).toHaveBeenCalledWith('proj-1', expect.objectContaining({
+      metadata: { samplers: 'LS', qaqc_gloves_used: 'true' },
+    }));
+  });
+
+  it('keeps listening to GPS when a save is blocked', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    await renderEntryForm('proj-1', [{ key: 'samplers', label: 'Sampler(s)', type: 'text', status: 'required' }], 'S-100');
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(gpsUnsubscribe).not.toHaveBeenCalled();
+  });
+
   it('shows duplicate warning when sampleId already exists', async () => {
     getSampleBySampleId.mockResolvedValue({ id: 'dup-s1', sampleId: 'S-DUP' });
     confirmDialog.mockResolvedValue(false);

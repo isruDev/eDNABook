@@ -1,7 +1,7 @@
 // js/views/sample-detail.js
 import { getSample, getProject, updateSample, deleteSample } from '../db.js';
-import { projectSchema } from '../field-model.js';
-import { renderMetadataInputs, readMetadataInputs } from './metadata-inputs.js';
+import { projectSchema, missingRequired } from '../field-model.js';
+import { renderMetadataInputs, readMetadataInputs, flagMissing, missingMessage } from './metadata-inputs.js';
 import { showView, showToast, confirmDialog, vibrate, clearElement, formatDate } from '../ui.js';
 import { navigate } from '../app.js';
 import { capturePhoto, savePhotoToDevice } from '../photo.js';
@@ -241,6 +241,12 @@ export async function renderSampleEdit(sampleId) {
 
     const scannedAt = document.getElementById('edit-sample-datetime').value;
     const metadata = readMetadataInputs(metaContainer);
+    const missing = missingRequired(fields, metadata);
+    flagMissing(metaContainer, fields, missing);
+    if (missing.length > 0) {
+      showToast(missingMessage(missing), 'error');
+      return;
+    }
 
     await updateSample(sampleId, {
       sampleId: sample.sampleId,

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderMetadataInputs, readMetadataInputs, flagMissing } from '../../js/views/metadata-inputs.js';
+import { renderMetadataInputs, readMetadataInputs, flagMissing, missingMessage } from '../../js/views/metadata-inputs.js';
 
 const FIELDS = [
   { key: 'samplers', label: 'Sampler(s)', type: 'text', status: 'required' },
@@ -72,7 +72,27 @@ describe('readMetadataInputs', () => {
   });
 });
 
+describe('missingMessage', () => {
+  it('names up to two missing fields', () => {
+    expect(missingMessage(['Sampler(s)', 'Sample Type'])).toBe('Fill in before saving: Sampler(s), Sample Type');
+  });
+
+  it('gives a count instead of a long list for three or more', () => {
+    expect(missingMessage(['A', 'B', 'C'])).toBe('Fill in 3 required fields (marked in red)');
+  });
+});
+
 describe('flagMissing', () => {
+  it('scrolls the first missing field into view', () => {
+    renderMetadataInputs(container, FIELDS);
+    const scrolled = [];
+    container.querySelectorAll('.form-field').forEach((el) => {
+      el.scrollIntoView = () => scrolled.push(el.querySelector('[data-field]').dataset.field);
+    });
+    flagMissing(container, FIELDS, ['Sample Type', 'Sampler(s)']);
+    expect(scrolled).toEqual(['samplers']);
+  });
+
   it('marks the fields with the given labels as invalid and clears the rest', () => {
     renderMetadataInputs(container, FIELDS);
     flagMissing(container, FIELDS, ['Sampler(s)']);

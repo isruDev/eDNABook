@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 vi.mock('../../js/db.js', () => ({
-  createProject: vi.fn(),
+  createProjectFromSchema: vi.fn(),
   getProject: vi.fn(),
-  updateProject: vi.fn(),
+  updateProjectSchema: vi.fn(),
   getAllProjects: vi.fn(),
   parseProject: vi.fn((content) => {
     const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -43,8 +43,9 @@ vi.mock('../../js/app.js', () => ({
   navigate: vi.fn(),
 }));
 
-import { createProject, getProject, updateProject, parseProject, getAllProjects } from '../../js/db.js';
+import { createProjectFromSchema, getProject, updateProjectSchema, parseProject, getAllProjects } from '../../js/db.js';
 import { navigate } from '../../js/app.js';
+import { PRESETS } from '../../js/templates.js';
 import { showView, showToast } from '../../js/ui.js';
 import {
   serializeFields,
@@ -54,7 +55,6 @@ import {
   moveFieldUp,
   moveFieldDown,
   renderProjectForm,
-  computeRenames,
 } from '../../js/views/project-form.js';
 
 // ---------------------------------------------------------------------------
@@ -72,6 +72,9 @@ function setupDOM() {
         <form id="project-form">
           <label for="project-title-input">Project Title</label>
           <input type="text" id="project-title-input" placeholder="e.g., River Survey 2026">
+          <div id="preset-picker"></div>
+          <div id="builtin-fields"></div>
+          <div id="preset-fields"></div>
           <h2>Metadata Fields</h2>
           <div id="field-list"></div>
           <button type="button" class="btn-secondary" id="add-field-btn">Add Field</button>
@@ -300,15 +303,15 @@ describe('renderProjectForm (create mode)', () => {
     expect(rows.length).toBe(1);
   });
 
-  it('submitting with empty title shows error and does not call createProject', async () => {
+  it('submitting with empty title shows error and does not call createProjectFromSchema', async () => {
     await renderProjectForm();
     const form = document.getElementById('project-form');
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    expect(createProject).not.toHaveBeenCalled();
+    expect(createProjectFromSchema).not.toHaveBeenCalled();
   });
 
-  it('submitting with a valid title calls createProject with correct content', async () => {
-    createProject.mockResolvedValue({ id: 'new-project-id', content: '' });
+  it('submitting a custom project saves its title and custom fields as a v2 schema', async () => {
+    createProjectFromSchema.mockResolvedValue({ id: 'new-project-id' });
     await renderProjectForm();
 
     document.getElementById('project-title-input').value = 'River Survey';
@@ -318,13 +321,17 @@ describe('renderProjectForm (create mode)', () => {
     const form = document.getElementById('project-form');
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
-    await vi.waitFor(() => expect(createProject).toHaveBeenCalledTimes(1));
-    const [content] = createProject.mock.calls[0];
-    expect(content).toBe('River Survey\nCollector');
+    await vi.waitFor(() => expect(createProjectFromSchema).toHaveBeenCalledTimes(1));
+    const [schema] = createProjectFromSchema.mock.calls[0];
+    expect(schema).toEqual({
+      title: 'River Survey',
+      templateId: 'custom',
+      fields: [{ key: expect.stringMatching(/^custom_[0-9a-f]{8}$/), label: 'Collector', type: 'text', status: 'optional' }],
+    });
   });
 
   it('navigates to project dashboard after successful create', async () => {
-    createProject.mockResolvedValue({ id: 'new-project-id', content: '' });
+    createProjectFromSchema.mockResolvedValue({ id: 'new-project-id', content: '' });
     await renderProjectForm();
     document.getElementById('project-title-input').value = 'Test Project';
     const form = document.getElementById('project-form');
@@ -372,24 +379,24 @@ describe('renderProjectForm (edit mode)', () => {
     expect(heading.textContent).toBe('Edit Project');
   });
 
-  it('submitting calls updateProject with the project id and new content', async () => {
+  it('submitting calls updateProjectSchema with the project id and new content', async () => {
     getProject.mockResolvedValue({ id: 'existing-id', content: 'Old Name\nField' });
-    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+    updateProjectSchema.mockResolvedValue({ id: 'existing-id', content: '' });
     await renderProjectForm('existing-id');
 
     document.getElementById('project-title-input').value = 'New Name';
     const form = document.getElementById('project-form');
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
-    await vi.waitFor(() => expect(updateProject).toHaveBeenCalledTimes(1));
-    const [id, content] = updateProject.mock.calls[0];
+    await vi.waitFor(() => expect(updateProjectSchema).toHaveBeenCalledTimes(1));
+    const [id, schema] = updateProjectSchema.mock.calls[0];
     expect(id).toBe('existing-id');
-    expect(content).toContain('New Name');
+    expect(schema.title).toBe('New Name');
   });
 
   it('navigates to project dashboard after successful update', async () => {
     getProject.mockResolvedValue({ id: 'existing-id', content: 'Survey\nField' });
-    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+    updateProjectSchema.mockResolvedValue({ id: 'existing-id', content: '' });
     await renderProjectForm('existing-id');
     document.getElementById('project-title-input').value = 'Updated';
     const form = document.getElementById('project-form');
@@ -402,27 +409,10 @@ describe('renderProjectForm (edit mode)', () => {
 // Duplicate project name prevention
 // ---------------------------------------------------------------------------
 
-describe('computeRenames', () => {
-  it('returns a rename for each existing field whose name changed', () => {
-    expect(computeRenames([
-      { name: 'Location', type: 'text', originalName: 'Site' },
-      { name: 'pH', type: 'text', originalName: 'pH' },
-    ])).toEqual([{ from: 'Site', to: 'Location' }]);
-  });
-
-  it('ignores new fields, blanked names, and whitespace-only changes', () => {
-    expect(computeRenames([
-      { name: 'Brand New', type: 'text' },
-      { name: '   ', type: 'text', originalName: 'Gone' },
-      { name: ' pH ', type: 'text', originalName: 'pH' },
-    ])).toEqual([]);
-  });
-});
-
 describe('renderProjectForm (field renames keep data)', () => {
-  it('passes renamed fields to updateProject so stored values follow the new name', async () => {
+  it('renaming a v1 field keeps its key, so stored sample values stay attached', async () => {
     getProject.mockResolvedValue({ id: 'existing-id', content: 'Survey\nSite\npH' });
-    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+    updateProjectSchema.mockResolvedValue({ id: 'existing-id' });
     await renderProjectForm('existing-id');
 
     const input = document.querySelectorAll('#field-list .field-row input')[0];
@@ -430,26 +420,94 @@ describe('renderProjectForm (field renames keep data)', () => {
     input.dispatchEvent(new Event('input'));
     document.getElementById('project-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
-    await vi.waitFor(() => expect(updateProject).toHaveBeenCalledTimes(1));
-    const [id, content, db, renames] = updateProject.mock.calls[0];
-    expect(id).toBe('existing-id');
-    expect(content).toBe('Survey\nLocation\npH');
-    expect(db).toBeUndefined();
-    expect(renames).toEqual([{ from: 'Site', to: 'Location' }]);
+    await vi.waitFor(() => expect(updateProjectSchema).toHaveBeenCalledTimes(1));
+    const [, schema] = updateProjectSchema.mock.calls[0];
+    expect(schema.fields.map((f) => [f.key, f.label])).toEqual([['Site', 'Location'], ['pH', 'pH']]);
   });
 
-  it('keeps track of the original name after the field is moved', async () => {
+  it('keeps each key with its field after the field is moved', async () => {
     getProject.mockResolvedValue({ id: 'existing-id', content: 'Survey\nSite\npH' });
-    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+    updateProjectSchema.mockResolvedValue({ id: 'existing-id' });
     await renderProjectForm('existing-id');
 
-    const input = document.querySelectorAll('#field-list .field-row input')[0];
-    input.value = 'Location';
+    document.querySelectorAll('#field-list .field-row input')[0].value = 'Location';
     document.querySelectorAll('#field-list .btn-move-down')[0].click();
     document.getElementById('project-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
-    await vi.waitFor(() => expect(updateProject).toHaveBeenCalledTimes(1));
-    expect(updateProject.mock.calls[0][3]).toEqual([{ from: 'Site', to: 'Location' }]);
+    await vi.waitFor(() => expect(updateProjectSchema).toHaveBeenCalledTimes(1));
+    expect(updateProjectSchema.mock.calls[0][1].fields.map((f) => [f.key, f.label]))
+      .toEqual([['pH', 'pH'], ['Site', 'Location']]);
+  });
+});
+
+describe('renderProjectForm (preset templates, #7)', () => {
+  /**
+   * Returns the keys of preset field toggles that are switched on.
+   *
+   * @returns {string[]} Keys from data-key of pressed toggles.
+   */
+  const pressedKeys = () => [...document.querySelectorAll('#preset-fields [aria-pressed="true"]')].map((b) => b.dataset.key);
+
+  it('offers Aquatic eDNA, Organismal / Tissue, and Custom when creating a project', async () => {
+    await renderProjectForm();
+    const choices = [...document.querySelectorAll('#preset-picker button')].map((b) => b.textContent);
+    expect(choices).toEqual([expect.stringContaining('Aquatic eDNA'), expect.stringContaining('Organismal / Tissue'), expect.stringContaining('Custom')]);
+  });
+
+  it('choosing Aquatic eDNA turns on every aquatic field and shows the locked fields', async () => {
+    await renderProjectForm();
+    document.querySelector('#preset-picker [data-preset="aquatic"]').click();
+    expect(pressedKeys()).toEqual(PRESETS.aquatic.fields.map((f) => f.key));
+    const locked = [...document.querySelectorAll('#builtin-fields button')];
+    expect(locked.map((b) => b.textContent)).toContain('Sample ID');
+    locked.forEach((b) => {
+      expect(b.disabled).toBe(true);
+      expect(b.getAttribute('aria-pressed')).toBe('true');
+    });
+  });
+
+  it('tapping a field toggle turns it off and leaves it out of the saved project', async () => {
+    createProjectFromSchema.mockResolvedValue({ id: 'new-id' });
+    await renderProjectForm();
+    document.getElementById('project-title-input').value = 'Lake 1';
+    document.querySelector('#preset-picker [data-preset="aquatic"]').click();
+    document.querySelector('#preset-fields [data-key="ph"]').click();
+    document.getElementById('add-field-btn').click();
+    document.querySelector('#field-list .field-row input').value = 'Weather';
+
+    document.getElementById('project-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(createProjectFromSchema).toHaveBeenCalledTimes(1));
+
+    const [schema] = createProjectFromSchema.mock.calls[0];
+    expect(schema.templateId).toBe('aquatic');
+    const keys = schema.fields.map((f) => f.key);
+    expect(keys).not.toContain('ph');
+    expect(keys.slice(0, 2)).toEqual(['samplers', 'site_name']);
+    expect(schema.fields.at(-1)).toMatchObject({ label: 'Weather', status: 'optional' });
+    expect(schema.fields.find((f) => f.key === 'sample_type').options).toEqual(PRESETS.aquatic.fields.find((f) => f.key === 'sample_type').options);
+  });
+
+  it('hides the picker when editing and restores the saved toggles and custom fields', async () => {
+    getProject.mockResolvedValue({
+      id: 'p1', title: 'Lake', templateId: 'aquatic',
+      fields: [
+        PRESETS.aquatic.fields[0],
+        { key: 'custom_ab12cd34', label: 'Weather', type: 'text', status: 'optional' },
+      ],
+    });
+    await renderProjectForm('p1');
+    expect(document.getElementById('preset-picker').hidden).toBe(true);
+    expect(pressedKeys()).toEqual(['samplers']);
+    const row = document.querySelector('#field-list .field-row');
+    expect(row.querySelector('input').value).toBe('Weather');
+    expect(row.dataset.key).toBe('custom_ab12cd34');
+  });
+
+  it('switching back to Custom clears the preset fields', async () => {
+    await renderProjectForm();
+    document.querySelector('#preset-picker [data-preset="aquatic"]').click();
+    document.querySelector('#preset-picker [data-preset="custom"]').click();
+    expect(document.querySelectorAll('#preset-fields button')).toHaveLength(0);
   });
 });
 
@@ -458,7 +516,7 @@ describe('duplicate project name prevention', () => {
     getAllProjects.mockResolvedValue([
       { id: 'existing-1', content: 'River Survey\nField1' },
     ]);
-    createProject.mockResolvedValue({ id: 'new-id', content: '' });
+    createProjectFromSchema.mockResolvedValue({ id: 'new-id', content: '' });
 
     await renderProjectForm();
     document.getElementById('project-title-input').value = 'River Survey';
@@ -466,7 +524,7 @@ describe('duplicate project name prevention', () => {
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
     await new Promise(r => setTimeout(r, 0));
-    expect(createProject).not.toHaveBeenCalled();
+    expect(createProjectFromSchema).not.toHaveBeenCalled();
     expect(document.getElementById('title-error')).not.toBeNull();
     expect(document.getElementById('title-error').textContent).toMatch(/already exists/i);
   });
@@ -476,14 +534,14 @@ describe('duplicate project name prevention', () => {
       { id: 'existing-id', content: 'River Survey\nField1' },
     ]);
     getProject.mockResolvedValue({ id: 'existing-id', content: 'River Survey\nField1' });
-    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+    updateProjectSchema.mockResolvedValue({ id: 'existing-id', content: '' });
 
     await renderProjectForm('existing-id');
     document.getElementById('project-title-input').value = 'River Survey';
     const form = document.getElementById('project-form');
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
-    await vi.waitFor(() => expect(updateProject).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(updateProjectSchema).toHaveBeenCalledTimes(1));
   });
 
   it('blocks saving when edit title matches a different existing project', async () => {
@@ -491,7 +549,7 @@ describe('duplicate project name prevention', () => {
       { id: 'other-id', content: 'Lake Study\nField1' },
     ]);
     getProject.mockResolvedValue({ id: 'existing-id', content: 'River Survey\nField1' });
-    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+    updateProjectSchema.mockResolvedValue({ id: 'existing-id', content: '' });
 
     await renderProjectForm('existing-id');
     document.getElementById('project-title-input').value = 'Lake Study';
@@ -499,7 +557,7 @@ describe('duplicate project name prevention', () => {
     form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
     await new Promise(r => setTimeout(r, 0));
-    expect(updateProject).not.toHaveBeenCalled();
+    expect(updateProjectSchema).not.toHaveBeenCalled();
     expect(document.getElementById('title-error')).not.toBeNull();
   });
 });

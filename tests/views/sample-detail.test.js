@@ -297,6 +297,22 @@ describe('renderSampleEdit', () => {
     expect(updateSample).toHaveBeenCalledWith('sample-1', expect.objectContaining({ metadata: { ph: '7.6' } }));
   });
 
+  it('edit form blocks saving when a required field is cleared', async () => {
+    getProject.mockResolvedValue({
+      id: 'proj-1', title: 'Lake', templateId: 'aquatic',
+      fields: [{ key: 'samplers', label: 'Sampler(s)', type: 'text', status: 'required' }],
+    });
+    getSample.mockResolvedValue({ ...MOCK_SAMPLE, metadata: { samplers: 'LS' } });
+    await renderSampleEdit('sample-1');
+
+    document.querySelector('[data-field="samplers"]').value = '';
+    document.getElementById('edit-sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(updateSample).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('Sampler(s)'), 'error');
+  });
+
   it('calls updateSample with correct data on submit', async () => {
     await renderSampleEdit('sample-1');
 

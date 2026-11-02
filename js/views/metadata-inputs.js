@@ -123,7 +123,28 @@ export function readMetadataInputs(container) {
  */
 export function flagMissing(container, fields, missingLabels) {
   const missingKeys = new Set(fields.filter((f) => missingLabels.includes(f.label)).map((f) => f.key));
+  let first = null;
   container.querySelectorAll('[data-field]').forEach((el) => {
-    el.closest('.form-field').classList.toggle('field-missing', missingKeys.has(el.dataset.field));
+    const wrapper = el.closest('.form-field');
+    const missing = missingKeys.has(el.dataset.field);
+    wrapper.classList.toggle('field-missing', missing);
+    if (missing && !first) first = wrapper;
   });
+  if (first && typeof first.scrollIntoView === 'function') {
+    first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+}
+
+/**
+ * Builds the toast text shown when a save is blocked by missing fields.
+ *
+ * @param {string[]} missingLabels - Labels returned by missingRequired().
+ * @returns {string} Names up to two fields; for three or more, gives a count
+ *   so the message fits on a phone screen.
+ * @example
+ * missingMessage(['Sampler(s)']); // 'Fill in before saving: Sampler(s)'
+ */
+export function missingMessage(missingLabels) {
+  if (missingLabels.length <= 2) return `Fill in before saving: ${missingLabels.join(', ')}`;
+  return `Fill in ${missingLabels.length} required fields (marked in red)`;
 }
