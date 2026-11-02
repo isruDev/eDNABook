@@ -402,6 +402,9 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
     };
 
     if (existingId) {
+      // This form never loads the existing photo, so "no photo" here means
+      // "no new photo": keep whatever filename the sample already has.
+      if (!currentPhoto) delete payload.photoFilename;
       await updateSample(existingId, payload);
     } else {
       await createSample(projectId, payload);

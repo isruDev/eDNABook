@@ -343,6 +343,29 @@ describe('renderEntryForm', () => {
     expect(updateSample).toHaveBeenCalledWith('existing-s1', expect.objectContaining({ sampleId: 'S-100' }));
   });
 
+  it('updating an existing sample without a new photo leaves its saved photo alone', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    updateSample.mockResolvedValue(undefined);
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100', 'existing-s1');
+
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(updateSample.mock.calls[0][1]).not.toHaveProperty('photoFilename');
+  });
+
+  it('updating an existing sample with a new photo saves the new filename', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    updateSample.mockResolvedValue(undefined);
+    const file = new File(['d'], 'new.jpg', { type: 'image/jpeg' });
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100', 'existing-s1', file);
+
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(updateSample).toHaveBeenCalledWith('existing-s1', expect.objectContaining({ photoFilename: 'new.jpg' }));
+  });
+
   it('shows duplicate warning when sampleId already exists', async () => {
     getSampleBySampleId.mockResolvedValue({ id: 'dup-s1', sampleId: 'S-DUP' });
     confirmDialog.mockResolvedValue(false);
