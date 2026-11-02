@@ -11,13 +11,30 @@ let currentStatus = { latitude: null, longitude: null, accuracy: null, state: 'w
 const listeners = new Set();
 
 /**
+ * Horizontal accuracy (meters) at or below which a fix counts as locked.
+ * Worse accuracy shows the yellow "locking" warning pill.
+ *
+ * @type {number}
+ */
+export const GPS_LOCK_THRESHOLD_M = 15;
+
+/**
+ * Horizontal accuracy (meters) above which the fix is so coarse that the
+ * device is most likely using network location instead of GNSS (for example
+ * iOS "Precise Location" or Android location accuracy turned off).
+ *
+ * @type {number}
+ */
+export const GPS_COARSE_THRESHOLD_M = 1000;
+
+/**
  * Computes the GPS state from an accuracy value.
  *
  * @param {number} accuracy - GPS accuracy in meters.
  * @returns {'locking'|'locked'} The computed state.
  */
 function stateFromAccuracy(accuracy) {
-  return accuracy <= 50 ? 'locked' : 'locking';
+  return accuracy <= GPS_LOCK_THRESHOLD_M ? 'locked' : 'locking';
 }
 
 /**
@@ -59,8 +76,26 @@ export function startGpsWatch() {
       currentStatus = { latitude: null, longitude: null, accuracy: null, state: 'error' };
       notifyListeners();
     },
-    { enableHighAccuracy: true }
+    { enableHighAccuracy: true, maximumAge: 0 }
   );
+}
+
+/**
+ * Discards the current fix and starts a fresh GPS watch, keeping listeners.
+ * Listeners are notified of the reset ('waiting') and then of each new fix.
+ *
+ * @returns {void}
+ * @remarks Used by the "Retake GPS" button. Unlike stopGpsWatch, this does not
+ * clear listeners, so the GPS pill and entry form keep updating.
+ */
+export function restartGpsWatch() {
+  if (watchId !== null && navigator.geolocation) {
+    navigator.geolocation.clearWatch(watchId);
+  }
+  watchId = null;
+  currentStatus = { latitude: null, longitude: null, accuracy: null, state: 'waiting' };
+  notifyListeners();
+  startGpsWatch();
 }
 
 /**

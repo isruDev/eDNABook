@@ -1,4 +1,4 @@
-import { onGpsChange } from './gps.js';
+import { onGpsChange, GPS_COARSE_THRESHOLD_M } from './gps.js';
 
 /** @type {HTMLElement|null} */
 let pillEl = null;
@@ -52,7 +52,9 @@ function updatePill(status) {
     case 'locking':
       pillEl.classList.add('gps-locking');
       prefixEl.textContent = 'GPS ';
-      valueEl.textContent = `${Math.round(status.accuracy)}m`;
+      valueEl.textContent = status.accuracy > GPS_COARSE_THRESHOLD_M
+        ? `${Math.round(status.accuracy)}m - check Precise Location`
+        : `${Math.round(status.accuracy)}m`;
       break;
     case 'locked':
       pillEl.classList.add('gps-locked');

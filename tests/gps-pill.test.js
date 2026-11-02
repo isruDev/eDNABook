@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 vi.mock('../js/gps.js', () => ({
   onGpsChange: vi.fn(),
+  GPS_COARSE_THRESHOLD_M: 1000,
 }));
 
 import { onGpsChange } from '../js/gps.js';
@@ -82,6 +83,27 @@ describe('initGpsPill', () => {
     const pill = document.getElementById('gps-pill');
     expect(pill.classList.contains('gps-locking')).toBe(true);
     expect(pill.classList.contains('gps-pill-hidden')).toBe(false);
+  });
+
+  it('tells the user to check precise location when accuracy is very coarse', () => {
+    let changeCallback;
+    onGpsChange.mockImplementation((cb) => { changeCallback = cb; return () => {}; });
+    initGpsPill();
+
+    changeCallback({ latitude: 47.6, longitude: -122.3, accuracy: 2500, state: 'locking' });
+    const pill = document.getElementById('gps-pill');
+    expect(pill.classList.contains('gps-locking')).toBe(true);
+    expect(pill.textContent.toLowerCase()).toContain('precise location');
+  });
+
+  it('does not show the precise location hint for a normal locking fix', () => {
+    let changeCallback;
+    onGpsChange.mockImplementation((cb) => { changeCallback = cb; return () => {}; });
+    initGpsPill();
+
+    changeCallback({ latitude: 47.6, longitude: -122.3, accuracy: 85, state: 'locking' });
+    const pill = document.getElementById('gps-pill');
+    expect(pill.textContent.toLowerCase()).not.toContain('precise location');
   });
 
   it('does not create duplicate pills on double init', () => {
