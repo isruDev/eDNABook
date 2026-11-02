@@ -30,22 +30,33 @@ The service worker (`sw.js`) is cache-first with a versioned `CACHE_NAME`
 Skipping the cache bump = pushing a fix that does nothing for installed users.
 That is the single most common way to "fix" the app without changing anything.
 
-## Known issues
+## Issue tracking
 
-- Photo filename data loss on new samples: `createSample` (`js/db.js`) uses an
-  explicit field whitelist that omits `photoFilename`, so the filename is dropped
-  when a freshly-scanned sample is saved (it only persists on edit via
-  `updateSample`'s spread). Export's Photo column is blank for those rows and the
-  photo files on the device have nothing linking them. The `sample-entry` test
-  asserts on the argument to a mocked `createSample`, so the suite is green and
-  does not catch it. Fix = add `photoFilename` to the `createSample` object plus a
-  real persistence test.
+All work is tracked in GitHub issues; known bugs live there, not in this file.
+
+- Board: https://github.com/users/isruDev/projects/3 (fields: Status, Priority, Area)
+- Definition of done for v2.0: pinned issue #1. Milestone: `v2.0`.
+- Labels: `priority:P0`-`P3`, `area:app|repo-zenodo|manuscript`,
+  `owner:luke|allen`, `reviewer-1|2`, `epic`.
+- Priority: P0 = data loss or reviewer-reported breakage; P1 = required for
+  v2.0/resubmission; P2 = should-have; P3 = later.
+- Find work: `gh issue list --milestone v2.0 --label priority:P0`.
+- Before starting an issue: set its board Status to In Progress. Branch name
+  `<number>-<slug>`. Commits/PRs reference it (`Fixes #N`) so the trail links up.
+- New bugs or scope found mid-task: file an issue (with labels + milestone),
+  do not widen the current change.
+- Manuscript issues (`area:manuscript`, `owner:allen`) are text work Allen does
+  outside this repo; Claude supplies technical facts as issue comments.
+- Metadata templates source of truth: `docs/eDNALite_Templates.md`.
+- Do NOT change `DB_NAME` (`'edna-logger'`) in `js/db.js` during the rename to
+  eDNALite; it would hide every user's stored data.
 
 ## Field-failure notes
 
 - Camera/scanner: needs HTTPS (Pages is fine). Denial/unavailable falls back to a
   message + "Enter ID Manually". MDM-locked phones may only get the fallback.
-- GPS: `enableHighAccuracy: true`, no timeout, "locked" only under 50m. Indoors it
+- GPS: `enableHighAccuracy: true`, no timeout, no `maximumAge`, "locked" only
+  under 50m (manuscript says 15m, see #4). Indoors it
   stays "locking"/error. Samples still save with null coords — not a blocker.
 - Export: `navigator.share` with anchor-download fallback. iOS is where share-sheet
   quirks surface.
