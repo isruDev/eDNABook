@@ -310,7 +310,7 @@ function renderFieldList() {
       type: 'button',
       className: 'btn-icon btn-move-up',
       'aria-label': 'Move field up',
-    }, 'up');
+    }, '↑');
     upBtn.disabled = index === 0;
     upBtn.addEventListener('click', () => {
       syncFieldsFromDOM();
@@ -322,7 +322,7 @@ function renderFieldList() {
       type: 'button',
       className: 'btn-icon btn-move-down',
       'aria-label': 'Move field down',
-    }, 'down');
+    }, '↓');
     downBtn.disabled = index === _fields.length - 1;
     downBtn.addEventListener('click', () => {
       syncFieldsFromDOM();
@@ -334,7 +334,7 @@ function renderFieldList() {
       type: 'button',
       className: 'btn-icon btn-remove-field',
       'aria-label': 'Remove field',
-    }, 'X');
+    }, '×');
     removeBtn.addEventListener('click', () => {
       syncFieldsFromDOM();
       _fields = removeField(_fields, index);

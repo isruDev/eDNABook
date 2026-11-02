@@ -488,7 +488,7 @@ a {
   background: var(--color-primary);
   color: #ffffff;
   border-radius: 16px;
-  padding: 2px 10px;
+  padding: 8px 12px;
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
@@ -1041,7 +1041,7 @@ button.empty-state:active,
   min-height: 44px;
   padding: 0;
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: 1.125rem;
   border: 1px solid var(--color-border);
   background: var(--color-background);
   color: var(--color-text-secondary);
