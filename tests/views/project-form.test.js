@@ -54,6 +54,7 @@ import {
   moveFieldUp,
   moveFieldDown,
   renderProjectForm,
+  computeRenames,
 } from '../../js/views/project-form.js';
 
 // ---------------------------------------------------------------------------
@@ -400,6 +401,57 @@ describe('renderProjectForm (edit mode)', () => {
 // ---------------------------------------------------------------------------
 // Duplicate project name prevention
 // ---------------------------------------------------------------------------
+
+describe('computeRenames', () => {
+  it('returns a rename for each existing field whose name changed', () => {
+    expect(computeRenames([
+      { name: 'Location', type: 'text', originalName: 'Site' },
+      { name: 'pH', type: 'text', originalName: 'pH' },
+    ])).toEqual([{ from: 'Site', to: 'Location' }]);
+  });
+
+  it('ignores new fields, blanked names, and whitespace-only changes', () => {
+    expect(computeRenames([
+      { name: 'Brand New', type: 'text' },
+      { name: '   ', type: 'text', originalName: 'Gone' },
+      { name: ' pH ', type: 'text', originalName: 'pH' },
+    ])).toEqual([]);
+  });
+});
+
+describe('renderProjectForm (field renames keep data)', () => {
+  it('passes renamed fields to updateProject so stored values follow the new name', async () => {
+    getProject.mockResolvedValue({ id: 'existing-id', content: 'Survey\nSite\npH' });
+    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+    await renderProjectForm('existing-id');
+
+    const input = document.querySelectorAll('#field-list .field-row input')[0];
+    input.value = 'Location';
+    input.dispatchEvent(new Event('input'));
+    document.getElementById('project-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+    await vi.waitFor(() => expect(updateProject).toHaveBeenCalledTimes(1));
+    const [id, content, db, renames] = updateProject.mock.calls[0];
+    expect(id).toBe('existing-id');
+    expect(content).toBe('Survey\nLocation\npH');
+    expect(db).toBeUndefined();
+    expect(renames).toEqual([{ from: 'Site', to: 'Location' }]);
+  });
+
+  it('keeps track of the original name after the field is moved', async () => {
+    getProject.mockResolvedValue({ id: 'existing-id', content: 'Survey\nSite\npH' });
+    updateProject.mockResolvedValue({ id: 'existing-id', content: '' });
+    await renderProjectForm('existing-id');
+
+    const input = document.querySelectorAll('#field-list .field-row input')[0];
+    input.value = 'Location';
+    document.querySelectorAll('#field-list .btn-move-down')[0].click();
+    document.getElementById('project-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+    await vi.waitFor(() => expect(updateProject).toHaveBeenCalledTimes(1));
+    expect(updateProject.mock.calls[0][3]).toEqual([{ from: 'Site', to: 'Location' }]);
+  });
+});
 
 describe('duplicate project name prevention', () => {
   it('shows error and does not create when title matches existing project', async () => {

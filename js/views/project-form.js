@@ -4,11 +4,27 @@ import { navigate } from '../app.js';
 
 /**
  * Module-level mutable state: the in-progress field array during editing.
- * Scoped to this module -- not exported.
+ * Scoped to this module -- not exported. originalName is set for fields
+ * loaded from a saved project, so renames can be detected on save.
  *
- * @type {Array<{ name: string, type: 'text' | 'checkbox' }>}
+ * @type {Array<{ name: string, type: 'text' | 'checkbox', originalName?: string }>}
  */
 let _fields = [];
+
+/**
+ * Lists the saved fields whose names were changed in the form.
+ *
+ * @param {Array<{ name: string, originalName?: string }>} fields - Current form fields.
+ * @returns {Array<{ from: string, to: string }>} One entry per renamed field.
+ *   New fields (no originalName) and fields cleared to blank are not renames.
+ * @example
+ * computeRenames([{ name: 'Location', originalName: 'Site' }]); // [{ from: 'Site', to: 'Location' }]
+ */
+export function computeRenames(fields) {
+  return fields
+    .map((f) => ({ from: f.originalName, to: f.name.trim() }))
+    .filter((r) => r.from && r.to && r.from !== r.to);
+}
 
 /**
  * The project ID being edited, or null when creating a new project.
@@ -114,10 +130,12 @@ function syncFieldsFromDOM() {
   _fields = Array.from(rows).map(row => {
     const input = row.querySelector('input');
     const typeBtn = row.querySelector('.btn-field-type');
-    return {
+    const field = {
       name: input.value,
       type: typeBtn && typeBtn.dataset.fieldType === 'checkbox' ? 'checkbox' : 'text',
     };
+    if (row.dataset.originalName) field.originalName = row.dataset.originalName;
+    return field;
   });
 }
 
@@ -198,6 +216,7 @@ function renderFieldList() {
     const row = createElement('div', { className: 'field-row' }, [
       typeBtn, input, upBtn, downBtn, removeBtn,
     ]);
+    if (fieldObj.originalName) row.dataset.originalName = fieldObj.originalName;
     container.appendChild(row);
   });
 }
@@ -247,7 +266,7 @@ async function handleSubmit(event) {
 
   try {
     if (_editingId) {
-      await updateProject(_editingId, content);
+      await updateProject(_editingId, content, undefined, computeRenames(_fields));
       showToast('Project updated.', 'success');
       navigate(`#/project/${_editingId}`);
     } else {
@@ -293,7 +312,7 @@ export async function renderProjectForm(projectId) {
     }
     const parsed = deserializeContent(project.content);
     if (titleInput) titleInput.value = parsed.title;
-    _fields = parsed.fields;
+    _fields = parsed.fields.map((f) => ({ ...f, originalName: f.name }));
   } else {
     if (titleInput) titleInput.value = '';
   }

@@ -104,6 +104,20 @@ describe('generateCSV', () => {
     ]);
   });
 
+  it('exports values stored under removed fields as extra columns before edit_log', () => {
+    Papa.unparse.mockReturnValue('csv');
+    const samples = [
+      { ...MOCK_SAMPLES[0], metadata: { ...MOCK_SAMPLES[0].metadata, 'Old Field': 'kept' } },
+      ...MOCK_SAMPLES.slice(1),
+    ];
+    generateCSV(MOCK_PROJECT, samples);
+
+    const [header, firstRow, secondRow] = Papa.unparse.mock.calls[0][0];
+    expect(header.slice(-2)).toEqual(['Old Field', 'edit_log']);
+    expect(firstRow[header.indexOf('Old Field')]).toBe('kept');
+    expect(secondRow[header.indexOf('Old Field')]).toBe('');
+  });
+
   it('maps sample data into correct column order', () => {
     Papa.unparse.mockReturnValue('csv-output');
     generateCSV(MOCK_PROJECT, MOCK_SAMPLES);
@@ -231,6 +245,17 @@ describe('generateSQLite', () => {
     expect(last[2]).toBe('TEXT');
     const [rows] = db.exec('SELECT edit_log FROM samples');
     expect(rows.values[0][0]).toBe('2026-05-01T14:02:00.000Z Site: A -> B');
+    db.close();
+  });
+
+  it('gives extra columns unique names when they collide after snake_case conversion', async () => {
+    const samples = [{ ...MOCK_SAMPLES[0], metadata: { ...MOCK_SAMPLES[0].metadata, site: 'lowercase twin' } }];
+    const bytes = await generateSQLite(MOCK_PROJECT, samples, testLocateFile);
+
+    const SQL = await initSqlJs({ locateFile: testLocateFile });
+    const db = new SQL.Database(bytes);
+    const [rows] = db.exec('SELECT site, site_2 FROM samples');
+    expect(rows.values[0]).toEqual(['River A', 'lowercase twin']);
     db.close();
   });
 

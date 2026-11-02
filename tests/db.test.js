@@ -180,6 +180,65 @@ describe('updateProject + deleteProject', () => {
     db.close();
   });
 
+  /**
+   * Creates a project with one sample holding the given metadata.
+   *
+   * @param {import('idb').IDBPDatabase} db - Open test database.
+   * @param {string} content - Project content string.
+   * @param {Record<string, string>} metadata - Sample metadata.
+   * @returns {Promise<{ project: object, sample: object }>} The created records.
+   */
+  async function projectWithSample(db, content, metadata) {
+    const project = await createProject(content, db);
+    const sample = await createSample(project.id, {
+      sampleId: `S-${crypto.randomUUID()}`, scannedAt: '2026-03-17T10:00',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata,
+    }, db);
+    return { project, sample };
+  }
+
+  it('updateProject with renames moves stored values to the new field name', async () => {
+    const db = await initDB(uniqueDbName());
+    const { project, sample } = await projectWithSample(db, 'Survey\nSite\npH', { Site: 'North Bank', pH: '7.1' });
+
+    await updateProject(project.id, 'Survey\nLocation\npH', db, [{ from: 'Site', to: 'Location' }]);
+
+    expect((await getSample(sample.id, db)).metadata).toEqual({ Location: 'North Bank', pH: '7.1' });
+    expect((await getProject(project.id, db)).content).toBe('Survey\nLocation\npH');
+    db.close();
+  });
+
+  it('updateProject with renames leaves samples of other projects untouched', async () => {
+    const db = await initDB(uniqueDbName());
+    const a = await projectWithSample(db, 'A\nSite', { Site: 'x' });
+    const b = await projectWithSample(db, 'B\nSite', { Site: 'y' });
+
+    await updateProject(a.project.id, 'A\nLocation', db, [{ from: 'Site', to: 'Location' }]);
+
+    expect((await getSample(b.sample.id, db)).metadata).toEqual({ Site: 'y' });
+    db.close();
+  });
+
+  it('updateProject with renames handles two fields swapping names', async () => {
+    const db = await initDB(uniqueDbName());
+    const { project, sample } = await projectWithSample(db, 'S\nA\nB', { A: 'one', B: 'two' });
+
+    await updateProject(project.id, 'S\nB\nA', db, [{ from: 'A', to: 'B' }, { from: 'B', to: 'A' }]);
+
+    expect((await getSample(sample.id, db)).metadata).toEqual({ B: 'one', A: 'two' });
+    db.close();
+  });
+
+  it('updateProject with renames never overwrites a value already stored under the new name', async () => {
+    const db = await initDB(uniqueDbName());
+    const { project, sample } = await projectWithSample(db, 'S\nSite', { Site: 'new value', Location: 'older value' });
+
+    await updateProject(project.id, 'S\nLocation', db, [{ from: 'Site', to: 'Location' }]);
+
+    expect((await getSample(sample.id, db)).metadata).toEqual({ Site: 'new value', Location: 'older value' });
+    db.close();
+  });
+
   it('deleteProject removes the project', async () => {
     const db = await initDB(uniqueDbName());
     const project = await createProject('ToDelete\nField', db);

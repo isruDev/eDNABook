@@ -60,6 +60,47 @@ const TRAILING_COLUMNS = Object.freeze([
 ]);
 
 /**
+ * Returns the metadata columns to export: the project's fields, then any other
+ * metadata keys found on samples (values left under removed or renamed fields),
+ * so no stored value is ever missing from an export.
+ *
+ * @param {Array<{name: string, type: string}>} fields - Project fields from parseProject().
+ * @param {import('./db.js').Sample[]} samples - Samples being exported.
+ * @returns {Array<{name: string, type: string}>} Project fields followed by extra
+ *   keys in first-seen order (typed as text).
+ */
+function exportFields(fields, samples) {
+  const known = new Set(fields.map((f) => f.name));
+  const extra = [];
+  for (const sample of samples) {
+    for (const key of Object.keys(sample.metadata ?? {})) {
+      if (!known.has(key)) {
+        known.add(key);
+        extra.push({ name: key, type: 'text' });
+      }
+    }
+  }
+  return [...fields, ...extra];
+}
+
+/**
+ * Makes column names unique by appending _2, _3, ... to repeats.
+ *
+ * @param {string[]} names - Candidate column names, possibly with duplicates.
+ * @param {Set<string>} [taken] - Names already used by other columns.
+ * @returns {string[]} Names in the same order with duplicates suffixed.
+ */
+function uniqueColumnNames(names, taken = new Set()) {
+  return names.map((name) => {
+    let candidate = name;
+    let n = 2;
+    while (taken.has(candidate)) candidate = `${name}_${n++}`;
+    taken.add(candidate);
+    return candidate;
+  });
+}
+
+/**
  * Builds the ordered list of fixed column headers used in both CSV and SQLite exports.
  *
  * @returns {string[]} Fixed column headers in declaration order.
@@ -95,7 +136,9 @@ function sampleToRow(sample, fields, projectTitle) {
  *
  * Column order: Project Name, eventID, eventDate, decimalLatitude, decimalLongitude,
  * GPS Accuracy, Photo, then each project-specific field in the order defined in
- * parseProject(project.content).fields. The four Darwin Core fields are emitted
+ * parseProject(project.content).fields, then any other metadata keys stored on
+ * samples (values under removed or renamed fields), then edit_log. The four
+ * Darwin Core fields are emitted
  * with exact DwC camelCase so exported CSVs are drop-in ready for GBIF/NCBI
  * pipelines per Allen's FAIR tutorial. decimalLatitude, decimalLongitude, and
  * GPS Accuracy are raw numbers (or null); all other values are strings.
@@ -109,7 +152,8 @@ function sampleToRow(sample, fields, projectTitle) {
  * shareOrDownload(csv, 'export.csv', 'text/csv');
  */
 export function generateCSV(project, samples) {
-  const { title, fields } = parseProject(project.content);
+  const { title, fields: projectFields } = parseProject(project.content);
+  const fields = exportFields(projectFields, samples);
   const headers = [...fixedHeaders(), ...fields.map(f => f.name), ...TRAILING_COLUMNS.map((c) => c.header)];
   const dataRows = samples.map((s) => sampleToRow(s, fields, title));
 
@@ -123,7 +167,8 @@ export function generateCSV(project, samples) {
  * Darwin Core fixed columns (eventID, eventDate, decimalLatitude, decimalLongitude)
  * preserve exact camelCase as SQLite column names. Non-DwC fixed columns use
  * snake_case (project_name, gps_accuracy, photo). User-defined metadata fields
- * are converted to snake_case via toSnakeCase(). decimalLatitude, decimalLongitude,
+ * are converted to snake_case via toSnakeCase(); names that collide get _2, _3
+ * suffixes. Extra metadata keys and edit_log follow, as in the CSV. decimalLatitude, decimalLongitude,
  * and GPS Accuracy are REAL; all other columns are TEXT. Column names from
  * FIXED_COLUMNS are hardcoded (no injection risk); user-defined metadata column
  * names pass through toSnakeCase() before being embedded in the CREATE TABLE
@@ -141,7 +186,8 @@ export function generateCSV(project, samples) {
  * shareOrDownload(bytes, 'export.db', 'application/x-sqlite3');
  */
 export async function generateSQLite(project, samples, locateFile = () => './lib/sql-wasm.wasm') {
-  const { title, fields } = parseProject(project.content);
+  const { title, fields: projectFields } = parseProject(project.content);
+  const fields = exportFields(projectFields, samples);
 
   // initSqlJs loaded via <script> tag (UMD, sets window.initSqlJs)
   // In test env, vitest alias provides it as an ESM import
@@ -150,7 +196,9 @@ export async function generateSQLite(project, samples, locateFile = () => './lib
   const db = new SQL.Database();
 
   const fixedColDefs = FIXED_COLUMNS.map((c) => `"${c.column}" ${c.type}`);
-  const metaColDefs = fields.map((f) => `"${toSnakeCase(f.name)}" TEXT`);
+  const reserved = new Set([...FIXED_COLUMNS, ...TRAILING_COLUMNS].map((c) => c.column));
+  const metaColDefs = uniqueColumnNames(fields.map((f) => toSnakeCase(f.name)), reserved)
+    .map((name) => `"${name}" TEXT`);
   const trailingColDefs = TRAILING_COLUMNS.map((c) => `"${c.column}" ${c.type}`);
   const colDefs = [...fixedColDefs, ...metaColDefs, ...trailingColDefs].join(', ');
 
