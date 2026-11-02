@@ -896,6 +896,32 @@ button.empty-state:active,
   pointer-events: none;
 }
 
+/* Append-only edit history on the sample detail view */
+.edit-history {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.edit-history h3 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.edit-history ul {
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.edit-history li + li {
+  margin-top: 2px;
+}
+
 /* Definition-list style detail rows */
 .detail-row {
   display: flex;

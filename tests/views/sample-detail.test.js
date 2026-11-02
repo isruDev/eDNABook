@@ -192,6 +192,28 @@ describe('renderSampleDetail', () => {
     expect(addBtn).not.toBeNull();
   });
 
+  it('shows the edit history, one line per edit', async () => {
+    getSample.mockResolvedValue({
+      ...MOCK_SAMPLE,
+      editLog: [
+        { at: '2026-05-01T14:02:00.000Z', field: 'Site', from: 'River A', to: 'River B' },
+        { at: '2026-05-01T14:05:00.000Z', field: 'scannedAt', from: '2026-01-15T09:30', to: '2026-01-15T10:00' },
+      ],
+    });
+    await renderSampleDetail('sample-1');
+    const history = document.getElementById('edit-history');
+    expect(history).not.toBeNull();
+    const items = history.querySelectorAll('li');
+    expect(items).toHaveLength(2);
+    expect(items[0].textContent).toContain('Site: River A -> River B');
+    expect(items[1].textContent).toContain('Date/Time: 2026-01-15T09:30 -> 2026-01-15T10:00');
+  });
+
+  it('shows no edit history section when the sample was never edited', async () => {
+    await renderSampleDetail('sample-1');
+    expect(document.getElementById('edit-history')).toBeNull();
+  });
+
   it('delete button reverts if not confirmed (first tap only)', async () => {
     await renderSampleDetail('sample-1');
     const btn = document.getElementById('delete-sample-btn');

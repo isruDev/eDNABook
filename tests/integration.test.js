@@ -16,6 +16,7 @@ import {
   createProject,
   getProject,
   createSample,
+  updateSample,
   getSamplesByProject,
   parseProject,
 } from '../js/db.js';
@@ -323,6 +324,30 @@ describe('integration: export generates CSV from saved samples', () => {
 
     const [header, dataRow] = Papa.unparse.mock.calls.at(-1)[0];
     expect(dataRow[header.indexOf('Photo')]).toBe('Photo_Link_Test_PHOTO-001.jpg');
+
+    db.close();
+  });
+
+  it('generateCSV ends with an edit_log column describing each edit', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Edit Log Test\npH', db);
+    const created = await createSample(project.id, {
+      sampleId: 'LOG-001',
+      scannedAt: '2026-03-17T11:00',
+      latitude: null, longitude: null, gpsAccuracy: null,
+      metadata: { pH: '7.1' },
+    }, db);
+    await updateSample(created.id, { metadata: { pH: '7.4' } }, db);
+
+    const samples = await getSamplesByProject(project.id, db);
+    const fetched = await getProject(project.id, db);
+    Papa.unparse.mockReturnValue('row');
+    generateCSV(fetched, samples);
+
+    const [header, dataRow] = Papa.unparse.mock.calls.at(-1)[0];
+    expect(header.at(-1)).toBe('edit_log');
+    expect(dataRow.at(-1)).toMatch(/^\d{4}-\d{2}-\d{2}T\S+ pH: 7\.1 -> 7\.4$/);
+    expect(dataRow[header.indexOf('pH')]).toBe('7.4');
 
     db.close();
   });

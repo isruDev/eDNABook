@@ -1,4 +1,5 @@
 import { openDB } from 'idb';
+import { diffSample } from './edit-log.js';
 
 /** @typedef {{ id: string, content: string, createdAt: string, updatedAt: string }} Project */
 
@@ -13,6 +14,8 @@ import { openDB } from 'idb';
  * @property {number|null} gpsAccuracy
  * @property {Record<string, string>} metadata
  * @property {string|null} photoFilename - Filename of the site photo saved to the device, or null.
+ * @property {import('./edit-log.js').EditLogEntry[]} [editLog] - Append-only history of edits.
+ *   Missing on samples saved before edit logs existed; treated as [].
  * @property {string} createdAt
  * @property {string} updatedAt
  */
@@ -192,6 +195,7 @@ export async function createSample(projectId, sampleData, db) {
     gpsAccuracy: sampleData.gpsAccuracy ?? null,
     metadata: sampleData.metadata ?? {},
     photoFilename: sampleData.photoFilename ?? null,
+    editLog: [],
     createdAt: now,
     updatedAt: now,
   };
@@ -232,6 +236,10 @@ export async function getSample(id, db) {
  * @param {import('idb').IDBPDatabase} [db] - Open database instance.
  * @returns {Promise<Sample>} The updated sample record.
  * @throws {Error} If no sample exists with the given id.
+ * @remarks Every changed value is appended to editLog (old and new value), so
+ * edits never destroy the original entry. Metadata is merged key by key, so
+ * values stored under keys absent from the update (for example a renamed
+ * field) are kept.
  */
 export async function updateSample(id, updates, db) {
   const conn = db ?? await initDB();
@@ -239,12 +247,15 @@ export async function updateSample(id, updates, db) {
   if (!existing) {
     throw new Error(`Sample not found: ${id}`);
   }
+  const now = new Date().toISOString();
   const updated = {
     ...existing,
     ...updates,
+    metadata: { ...(existing.metadata ?? {}), ...(updates.metadata ?? {}) },
+    editLog: [...(existing.editLog ?? []), ...diffSample(existing, updates, now)],
     id: existing.id,
     projectId: existing.projectId,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   };
   await conn.put('samples', updated);
   return updated;

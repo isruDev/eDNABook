@@ -274,6 +274,77 @@ describe('sample CRUD', () => {
     db.close();
   });
 
+  it('createSample starts with an empty edit log', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Survey\nField', db);
+    const created = await createSample(project.id, {
+      sampleId: 'S-LOG', scannedAt: '2026-03-17T10:00:00.000Z',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: {},
+    }, db);
+    expect((await getSample(created.id, db)).editLog).toEqual([]);
+    db.close();
+  });
+
+  it('updateSample appends an edit log entry for each changed value and keeps older entries', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Survey\npH', db);
+    const created = await createSample(project.id, {
+      sampleId: 'S-LOG', scannedAt: '2026-03-17T10:00',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: { pH: '7.1' },
+    }, db);
+
+    await updateSample(created.id, { metadata: { pH: '7.4' } }, db);
+    await updateSample(created.id, { metadata: { pH: '7.5' } }, db);
+
+    const log = (await getSample(created.id, db)).editLog;
+    expect(log.map((e) => [e.field, e.from, e.to])).toEqual([
+      ['pH', '7.1', '7.4'],
+      ['pH', '7.4', '7.5'],
+    ]);
+    expect(log[0].at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    db.close();
+  });
+
+  it('updateSample adds no edit log entry when nothing changed', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Survey\npH', db);
+    const created = await createSample(project.id, {
+      sampleId: 'S-LOG', scannedAt: '2026-03-17T10:00',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: { pH: '7.1' },
+    }, db);
+    await updateSample(created.id, { metadata: { pH: '7.1' } }, db);
+    expect((await getSample(created.id, db)).editLog).toEqual([]);
+    db.close();
+  });
+
+  it('updateSample keeps metadata values whose keys are not in the update', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Survey\npH', db);
+    const created = await createSample(project.id, {
+      sampleId: 'S-KEEP', scannedAt: '2026-03-17T10:00',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: { pH: '7.1', 'Old Name': 'keep me' },
+    }, db);
+    await updateSample(created.id, { metadata: { pH: '7.2' } }, db);
+    expect((await getSample(created.id, db)).metadata).toEqual({ pH: '7.2', 'Old Name': 'keep me' });
+    db.close();
+  });
+
+  it('updateSample builds an edit log for samples saved before edit logs existed', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Survey\npH', db);
+    const created = await createSample(project.id, {
+      sampleId: 'S-OLD', scannedAt: '2026-03-17T10:00',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: { pH: '7.1' },
+    }, db);
+    const legacy = await getSample(created.id, db);
+    delete legacy.editLog;
+    await db.put('samples', legacy);
+
+    await updateSample(created.id, { metadata: { pH: '6.9' } }, db);
+    expect((await getSample(created.id, db)).editLog).toHaveLength(1);
+    db.close();
+  });
+
   it('getSamplesByProject returns samples sorted by scannedAt desc', async () => {
     const db = await initDB(uniqueDbName());
     const project = await createProject('Survey\nField', db);

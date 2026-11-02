@@ -100,6 +100,7 @@ describe('generateCSV', () => {
       'Photo',
       'Site',
       'Collector',
+      'edit_log',
     ]);
   });
 
@@ -212,6 +213,24 @@ describe('generateSQLite', () => {
     expect(colNames).toContain('photo');
     expect(colNames).toContain('site');
     expect(colNames).toContain('collector');
+    db.close();
+  });
+
+  it('ends with a TEXT edit_log column holding the formatted edit history', async () => {
+    const edited = [{
+      ...MOCK_SAMPLES[0],
+      editLog: [{ at: '2026-05-01T14:02:00.000Z', field: 'Site', from: 'A', to: 'B' }],
+    }];
+    const bytes = await generateSQLite(MOCK_PROJECT, edited, testLocateFile);
+
+    const SQL = await initSqlJs({ locateFile: testLocateFile });
+    const db = new SQL.Database(bytes);
+    const [info] = db.exec('PRAGMA table_info(samples)');
+    const last = info.values.at(-1);
+    expect(last[1]).toBe('edit_log');
+    expect(last[2]).toBe('TEXT');
+    const [rows] = db.exec('SELECT edit_log FROM samples');
+    expect(rows.values[0][0]).toBe('2026-05-01T14:02:00.000Z Site: A -> B');
     db.close();
   });
 

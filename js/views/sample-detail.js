@@ -3,6 +3,7 @@ import { getSample, getProject, parseProject, updateSample, deleteSample } from 
 import { showView, showToast, confirmDialog, vibrate, clearElement, formatDate } from '../ui.js';
 import { navigate } from '../app.js';
 import { capturePhoto, savePhotoToDevice } from '../photo.js';
+import { formatEditLogEntry } from '../edit-log.js';
 
 /**
  * Formats a datetime string for a datetime-local input (YYYY-MM-DDTHH:MM).
@@ -12,6 +13,32 @@ import { capturePhoto, savePhotoToDevice } from '../photo.js';
  */
 function toDatetimeLocalValue(isoString) {
   return isoString ? isoString.slice(0, 16) : '';
+}
+
+/**
+ * Appends the sample's edit history list to a container. Does nothing when
+ * the sample has never been edited.
+ *
+ * @param {HTMLElement} container - Element to append the history section to.
+ * @param {import('../edit-log.js').EditLogEntry[]|undefined} editLog - The sample's edit log.
+ * @returns {void}
+ */
+function renderEditHistory(container, editLog) {
+  if (!editLog || editLog.length === 0) return;
+  const section = document.createElement('section');
+  section.id = 'edit-history';
+  section.className = 'edit-history';
+  const heading = document.createElement('h3');
+  heading.textContent = 'Edit history';
+  const list = document.createElement('ul');
+  editLog.forEach((entry) => {
+    const item = document.createElement('li');
+    item.textContent = formatEditLogEntry(entry);
+    list.appendChild(item);
+  });
+  section.appendChild(heading);
+  section.appendChild(list);
+  container.appendChild(section);
 }
 
 /**
@@ -125,6 +152,8 @@ export async function renderSampleDetail(sampleId) {
     };
     content.appendChild(addBtn);
   }
+
+  renderEditHistory(content, sample.editLog);
 
   const detailView = document.querySelector('[data-view="sample-detail"]');
   detailView.querySelector('.btn-back').onclick = () =>

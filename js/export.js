@@ -1,6 +1,7 @@
 // js/export.js
 // UMD libs: loaded via <script> in browser (sets globals), via vitest alias in tests
 import { parseProject } from './db.js';
+import { formatEditLog } from './edit-log.js';
 
 // Resolve Papa: window global (browser) or dynamic import (test/Node)
 let Papa;
@@ -50,6 +51,15 @@ const FIXED_COLUMNS = Object.freeze([
 ]);
 
 /**
+ * Columns emitted after the project-specific metadata columns.
+ *
+ * @type {ReadonlyArray<{header: string, column: string, type: 'TEXT'}>}
+ */
+const TRAILING_COLUMNS = Object.freeze([
+  { header: 'edit_log', column: 'edit_log', type: 'TEXT' },
+]);
+
+/**
  * Builds the ordered list of fixed column headers used in both CSV and SQLite exports.
  *
  * @returns {string[]} Fixed column headers in declaration order.
@@ -77,7 +87,7 @@ function sampleToRow(sample, fields, projectTitle) {
     sample.photoFilename ?? '',
   ];
   const meta = fields.map((f) => (sample.metadata ?? {})[f.name] ?? '');
-  return [...fixed, ...meta];
+  return [...fixed, ...meta, formatEditLog(sample.editLog)];
 }
 
 /**
@@ -100,7 +110,7 @@ function sampleToRow(sample, fields, projectTitle) {
  */
 export function generateCSV(project, samples) {
   const { title, fields } = parseProject(project.content);
-  const headers = [...fixedHeaders(), ...fields.map(f => f.name)];
+  const headers = [...fixedHeaders(), ...fields.map(f => f.name), ...TRAILING_COLUMNS.map((c) => c.header)];
   const dataRows = samples.map((s) => sampleToRow(s, fields, title));
 
   return Papa.unparse([headers, ...dataRows]);
@@ -141,12 +151,13 @@ export async function generateSQLite(project, samples, locateFile = () => './lib
 
   const fixedColDefs = FIXED_COLUMNS.map((c) => `"${c.column}" ${c.type}`);
   const metaColDefs = fields.map((f) => `"${toSnakeCase(f.name)}" TEXT`);
-  const colDefs = [...fixedColDefs, ...metaColDefs].join(', ');
+  const trailingColDefs = TRAILING_COLUMNS.map((c) => `"${c.column}" ${c.type}`);
+  const colDefs = [...fixedColDefs, ...metaColDefs, ...trailingColDefs].join(', ');
 
   db.run(`CREATE TABLE samples (${colDefs})`);
 
   if (samples.length > 0) {
-    const totalCols = FIXED_COLUMNS.length + fields.length;
+    const totalCols = FIXED_COLUMNS.length + fields.length + TRAILING_COLUMNS.length;
     const placeholders = new Array(totalCols).fill('?').join(', ');
     const stmt = db.prepare(`INSERT INTO samples VALUES (${placeholders})`);
 
