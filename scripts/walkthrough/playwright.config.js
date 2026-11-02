@@ -7,6 +7,7 @@ export default defineConfig({
   testMatch: 'walkthrough.shots.js',
   timeout: 60000,
   outputDir: '../../test-results/walkthrough',
+  metadata: { outDir: 'docs/walkthrough' },
   use: {
     baseURL: 'http://localhost:8080',
     viewport: { width: 390, height: 844 },

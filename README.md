@@ -104,6 +104,9 @@ npm run screenshots
 
 # Rebuild the example exports in examples/ after an export change
 npm run examples
+
+# Manuscript figures from the deployed app, 3x resolution, into docs/figures/
+npm run figures
 ```
 
 Open `http://localhost:8080` in a modern browser. The service worker and camera APIs require a secure origin, so localhost or an HTTPS deployment is required.

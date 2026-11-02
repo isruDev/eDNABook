@@ -6,8 +6,15 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SCHEME = process.env.SCHEME === 'dark' ? 'dark' : 'light';
-const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../../docs/walkthrough');
-mkdirSync(OUT, { recursive: true });
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+
+/** @type {string} Output folder, set by the config's metadata.outDir (repo-relative). */
+let OUT;
+
+test.beforeAll(({}, testInfo) => {
+  OUT = resolve(REPO_ROOT, testInfo.config.metadata.outDir);
+  mkdirSync(OUT, { recursive: true });
+});
 
 /**
  * Saves a full-page screenshot once animations and toasts have settled.
@@ -22,7 +29,8 @@ async function shot(page, name) {
 }
 
 test('walkthrough', async ({ page }) => {
-  await page.goto('/');
+  // './' keeps the base URL's path, so a deployed app under /eDNABook/ works.
+  await page.goto('./');
   await page.waitForSelector('#new-project-btn');
 
   await page.click('#new-project-btn');
