@@ -5,6 +5,7 @@
   --color-primary: #1a5632;
   --color-primary-dark: #0f3d22;
   --color-primary-light: #2d7a4a;
+  --color-link: #1a5632;
   --color-surface: #f5f7fa;
   --color-background: #ffffff;
   --color-border: #dde1e7;
@@ -32,9 +33,10 @@
 /* ---------- Dark mode tokens ---------- */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-primary: #2d8a4e;
+    --color-primary: #2a8449;
     --color-primary-dark: #1a5632;
     --color-primary-light: #4eba6f;
+    --color-link: #4eba6f;
     --color-surface: #1e1e2e;
     --color-background: #141422;
     --color-border: #3a3a50;
@@ -83,21 +85,12 @@
     color: #fca5a5;
   }
 
-  html {
-    font-size: 18px;
-  }
-
   .card, .sample-card {
     border-width: 2px;
   }
 
   input, select, textarea {
     border-width: 2px;
-  }
-
-  .btn-primary, .btn-secondary, .btn-danger {
-    font-weight: 600;
-    min-height: 52px;
   }
 }
 
@@ -110,8 +103,9 @@
   padding: 0;
 }
 
+/* 18px base in every theme: readable outdoors, with gloves or wet hands. */
 html {
-  font-size: 16px;
+  font-size: 18px;
   -webkit-text-size-adjust: 100%;
   color-scheme: light dark;
 }
@@ -147,7 +141,7 @@ select {
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--color-link);
   text-decoration: none;
 }
 
@@ -225,7 +219,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 var(--spacing-md);
   border-radius: var(--radius-md);
   font-weight: 600;
@@ -289,7 +283,7 @@ a {
 .btn-inline {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
@@ -359,7 +353,7 @@ a {
 
 .view .btn-back::after {
   content: 'back';
-  font-size: 0.55rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   color: #ffffff;
   line-height: 1;
@@ -585,9 +579,9 @@ a {
 
 .header-action-btn {
   width: auto;
-  height: 30px;
-  min-height: 30px;
-  font-size: 0.7rem;
+  height: 44px;
+  min-height: 44px;
+  font-size: 0.75rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
   padding: 0 10px;
@@ -714,8 +708,8 @@ button.empty-state:active,
 
 /* Export button: in toolbar, matches secondary style */
 #export-btn {
-  min-height: 40px;
-  height: 40px;
+  min-height: 48px;
+  height: 48px;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text-secondary);
@@ -736,7 +730,26 @@ button.empty-state:active,
   opacity: 0.85;
 }
 
-/* Dashboard bottom toolbar */
+/* Title row: Edit sits next to the project name, far from Delete at the bottom */
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.dashboard-header #dashboard-title {
+  margin-bottom: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-header #edit-project-btn {
+  flex-shrink: 0;
+}
+
+/* Dashboard bottom toolbar: Export on the left, Delete pushed to the far right */
 .dashboard-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -746,10 +759,14 @@ button.empty-state:active,
   border-top: 1px solid var(--color-border);
 }
 
-/* Edit/Delete project: inline toolbar */
+.dashboard-toolbar #delete-project-btn {
+  margin-left: auto;
+}
+
+/* Edit project button */
 #edit-project-btn {
-  min-height: 40px;
-  height: 40px;
+  min-height: 48px;
+  height: 48px;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text-secondary);
@@ -778,8 +795,8 @@ button.empty-state:active,
 }
 
 #delete-project-btn {
-  min-height: 40px;
-  height: 40px;
+  min-height: 48px;
+  height: 48px;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-error);
@@ -840,6 +857,13 @@ button.empty-state:active,
 }
 
 /* ---------- Sample detail view ---------- */
+/* Edit at the top of the sample; Delete alone at the bottom */
+.detail-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-sm);
+}
+
 .detail-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -850,8 +874,8 @@ button.empty-state:active,
 }
 
 #edit-sample-btn {
-  min-height: 40px;
-  height: 40px;
+  min-height: 48px;
+  height: 48px;
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0 var(--spacing-md);
@@ -865,8 +889,8 @@ button.empty-state:active,
 /* ---------- Delete sample button + countdown animation ---------- */
 #delete-sample-btn {
   width: auto;
-  min-height: 40px;
-  height: 40px;
+  min-height: 48px;
+  height: 48px;
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0 var(--spacing-md);
@@ -975,7 +999,7 @@ button.empty-state:active,
 .field-row input {
   flex: 1;
   min-width: 0;
-  height: 36px;
+  height: 44px;
   padding: 0 10px;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -995,13 +1019,13 @@ button.empty-state:active,
 .btn-move-up,
 .btn-move-down,
 .btn-remove-field {
-  width: 36px;
-  min-width: 36px;
-  height: 36px;
-  min-height: 36px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
   border-radius: var(--radius-sm);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   border: 1px solid var(--color-border);
   background: var(--color-background);
   color: var(--color-text-secondary);
@@ -1014,7 +1038,7 @@ button.empty-state:active,
 .btn-move-up:hover,
 .btn-move-down:hover {
   background: var(--color-surface);
-  color: var(--color-primary);
+  color: var(--color-link);
   border-color: var(--color-primary);
 }
 
@@ -1037,7 +1061,7 @@ button.empty-state:active,
   margin-top: var(--spacing-xs);
   margin-bottom: var(--spacing-md);
   border-style: dashed;
-  color: var(--color-primary);
+  color: var(--color-link);
   border-color: var(--color-primary);
   background: transparent;
 }
@@ -1321,8 +1345,8 @@ button.empty-state:active,
 
 /* ---------- Field Type Toggle ---------- */
 .btn-field-type {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 6px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -1398,7 +1422,7 @@ button.empty-state:active,
   right: var(--spacing-md);
   padding: 3px 10px;
   border-radius: 12px;
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   width: fit-content;
   transition: opacity 0.5s ease;
   background: rgba(255, 255, 255, 0.15);
@@ -1466,7 +1490,7 @@ button.empty-state:active,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
+  height: 44px;
   padding: 0 var(--spacing-md);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.18);
@@ -1536,8 +1560,8 @@ button.empty-state:active,
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   font-size: 1.25rem;
   color: var(--color-text-secondary);
@@ -1717,7 +1741,7 @@ button.empty-state:active,
 .about-link-row a {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-primary);
+  color: var(--color-link);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -1730,6 +1754,7 @@ button.empty-state:active,
   --color-primary: #1a5632;
   --color-primary-dark: #0f3d22;
   --color-primary-light: #2d7a4a;
+  --color-link: #1a5632;
   --color-surface: #f5f7fa;
   --color-background: #ffffff;
   --color-border: #dde1e7;
@@ -1745,9 +1770,10 @@ button.empty-state:active,
 }
 
 [data-theme="dark"] {
-  --color-primary: #2d8a4e;
+  --color-primary: #2a8449;
   --color-primary-dark: #1a5632;
   --color-primary-light: #4eba6f;
+  --color-link: #4eba6f;
   --color-surface: #1e1e2e;
   --color-background: #141422;
   --color-border: #3a3a50;
@@ -1979,7 +2005,7 @@ button.empty-state:active,
 .changelog-sha {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--color-primary);
+  color: var(--color-link);
   font-weight: 600;
 }
 

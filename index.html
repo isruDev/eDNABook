@@ -55,7 +55,10 @@
 
       <div class="view" data-view="project-dashboard" id="view-project-dashboard">
         <button class="btn-back">Back</button>
-        <h2 id="dashboard-title"></h2>
+        <div class="dashboard-header">
+          <h2 id="dashboard-title"></h2>
+          <button class="btn-secondary" id="edit-project-btn">Edit</button>
+        </div>
         <div id="dashboard-fields" class="field-tags"></div>
         <div class="dashboard-actions">
           <button class="btn-primary btn-large" id="scan-btn">Scan Sample</button>
@@ -64,7 +67,6 @@
         <div id="sample-list"></div>
         <div class="dashboard-toolbar">
           <button class="btn-secondary" id="export-btn">Export Data</button>
-          <button class="btn-secondary" id="edit-project-btn">Edit</button>
           <button class="btn-danger" id="delete-project-btn">Delete Project</button>
         </div>
       </div>
@@ -104,9 +106,11 @@
 
       <div class="view" data-view="sample-detail" id="view-sample-detail">
         <button class="btn-back">Back</button>
+        <div class="detail-topbar">
+          <button class="btn-secondary" id="edit-sample-btn">Edit</button>
+        </div>
         <div id="sample-detail-content"></div>
         <div class="detail-toolbar">
-          <button class="btn-secondary" id="edit-sample-btn">Edit</button>
           <button class="btn-danger" id="delete-sample-btn">Delete Sample</button>
         </div>
       </div>
