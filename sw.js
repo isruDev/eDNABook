@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ednalite-v33';
+const CACHE_NAME = 'ednalite-v34';
 
 const PRECACHE_ASSETS = [
   './',

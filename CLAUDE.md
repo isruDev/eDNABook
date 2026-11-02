@@ -57,8 +57,9 @@ All work is tracked in GitHub issues; known bugs live there, not in this file.
 
 - Camera/scanner: needs HTTPS (Pages is fine). Denial/unavailable falls back to a
   message + "Enter ID Manually". MDM-locked phones may only get the fallback.
-- GPS: `enableHighAccuracy: true`, no timeout, no `maximumAge`, "locked" only
-  under 50m (manuscript says 15m, see #4). Indoors it
+- GPS: one continuous `watchPosition` from app start (`enableHighAccuracy: true`,
+  `maximumAge: 0`, no timeout). "Locked" at 15 m or better; worse shows a
+  warning. Retake GPS restarts the watch. Indoors it
   stays "locking"/error. Samples still save with null coords — not a blocker.
 - Export: `navigator.share` with anchor-download fallback. iOS is where share-sheet
   quirks surface.
