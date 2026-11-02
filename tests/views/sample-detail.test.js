@@ -226,6 +226,20 @@ describe('renderSampleDetail', () => {
     expect(items[1].textContent).toContain('Date/Time: 2026-01-15T09:30 -> 2026-01-15T10:00');
   });
 
+  it('edit history uses the field label, not the storage key', async () => {
+    getProject.mockResolvedValue({
+      id: 'proj-1', title: 'Lake', templateId: 'aquatic',
+      fields: [{ key: 'ph', label: 'pH', type: 'number', status: 'optional' }],
+    });
+    getSample.mockResolvedValue({
+      ...MOCK_SAMPLE,
+      metadata: { ph: '7.8' },
+      editLog: [{ at: '2026-05-01T14:02:00.000Z', field: 'ph', from: '7.6', to: '7.8' }],
+    });
+    await renderSampleDetail('sample-1');
+    expect(document.querySelector('#edit-history li').textContent).toContain('pH: 7.6 -> 7.8');
+  });
+
   it('shows no edit history section when the sample was never edited', async () => {
     await renderSampleDetail('sample-1');
     expect(document.getElementById('edit-history')).toBeNull();

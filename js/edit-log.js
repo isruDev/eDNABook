@@ -75,27 +75,31 @@ export function diffSample(existing, updates, at) {
  * Formats one edit log entry as "time Label: old -> new".
  *
  * @param {EditLogEntry} entry - A single edit log entry.
+ * @param {Record<string, string>} [labels={}] - Metadata field key -> current label;
+ *   built-in keys and unknown keys fall back to their own label or key.
  * @returns {string} The formatted line; empty values are shown as "(empty)".
  * @example
  * formatEditLogEntry({ at: '2026-05-01T14:02:00.000Z', field: 'gpsAccuracy', from: '30', to: '6' });
  * // '2026-05-01T14:02:00.000Z GPS Accuracy: 30 -> 6'
  */
-export function formatEditLogEntry(entry) {
+export function formatEditLogEntry(entry, labels = {}) {
   const show = (v) => (v === '' ? '(empty)' : v);
-  return `${entry.at} ${LABELS[entry.field] ?? entry.field}: ${show(entry.from)} -> ${show(entry.to)}`;
+  const label = labels[entry.field] ?? LABELS[entry.field] ?? entry.field;
+  return `${entry.at} ${label}: ${show(entry.from)} -> ${show(entry.to)}`;
 }
 
 /**
  * Formats an edit log as one human-readable line for CSV/SQLite export.
  *
  * @param {EditLogEntry[]|undefined} log - The sample's edit log.
+ * @param {Record<string, string>} [labels={}] - Metadata field key -> current label.
  * @returns {string} Entries formatted by formatEditLogEntry, joined by "; ".
  *   '' when there are no entries.
  * @example
  * formatEditLog([{ at: '2026-05-01T14:02:00.000Z', field: 'pH', from: '7.1', to: '7.4' }]);
  * // '2026-05-01T14:02:00.000Z pH: 7.1 -> 7.4'
  */
-export function formatEditLog(log) {
+export function formatEditLog(log, labels = {}) {
   if (!log || log.length === 0) return '';
-  return log.map(formatEditLogEntry).join('; ');
+  return log.map((entry) => formatEditLogEntry(entry, labels)).join('; ');
 }

@@ -351,6 +351,25 @@ describe('integration: export generates CSV from saved samples', () => {
     db.close();
   });
 
+  it('generateCSV writes field labels, not storage keys, in edit_log', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProjectFromSchema({
+      title: 'Lake', templateId: 'aquatic',
+      fields: [{ key: 'ph', label: 'pH', type: 'number', status: 'optional' }],
+    }, db);
+    const created = await createSample(project.id, {
+      sampleId: 'V2-LOG', scannedAt: '2026-03-17T11:00',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: { ph: '7.3' },
+    }, db);
+    await updateSample(created.id, { metadata: { ph: '7.5' } }, db);
+
+    Papa.unparse.mockReturnValue('row');
+    generateCSV(await getProject(project.id, db), await getSamplesByProject(project.id, db));
+    const [, dataRow] = Papa.unparse.mock.calls.at(-1)[0];
+    expect(dataRow.at(-1)).toMatch(/ pH: 7\.3 -> 7\.5$/);
+    db.close();
+  });
+
   it('generateCSV ends with an edit_log column describing each edit', async () => {
     const db = await initDB(uniqueDbName());
     const project = await createProject('Edit Log Test\npH', db);

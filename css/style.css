@@ -963,10 +963,10 @@ button.empty-state:active,
 }
 
 .detail-label {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  text-transform: none; /* units are case-sensitive: uS/cm, pH */
+  letter-spacing: 0.01em;
   color: var(--color-text-secondary);
   margin-bottom: 2px;
 }

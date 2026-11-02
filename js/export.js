@@ -128,7 +128,8 @@ function sampleToRow(sample, fields, projectTitle) {
     sample.photoFilename ?? '',
   ];
   const meta = fields.map((f) => (sample.metadata ?? {})[f.key] ?? '');
-  return [...fixed, ...meta, formatEditLog(sample.editLog)];
+  const labels = Object.fromEntries(fields.map((f) => [f.key, f.label]));
+  return [...fixed, ...meta, formatEditLog(sample.editLog, labels)];
 }
 
 /**

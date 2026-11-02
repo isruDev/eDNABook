@@ -63,6 +63,18 @@ describe('formatEditLogEntry', () => {
     expect(formatEditLogEntry({ at: AT, field: 'gpsAccuracy', from: '30', to: '6' }))
       .toBe(`${AT} GPS Accuracy: 30 -> 6`);
   });
+
+  it('shows the current field label for a metadata key when labels are given', () => {
+    expect(formatEditLogEntry({ at: AT, field: 'ph', from: '7.6', to: '7.8' }, { ph: 'pH' }))
+      .toBe(`${AT} pH: 7.6 -> 7.8`);
+  });
+});
+
+describe('formatEditLog with labels', () => {
+  it('passes the label map to every entry', () => {
+    expect(formatEditLog([{ at: AT, field: 'ph', from: '7.6', to: '7.8' }], { ph: 'pH' }))
+      .toBe(`${AT} pH: 7.6 -> 7.8`);
+  });
 });
 
 describe('formatEditLog', () => {

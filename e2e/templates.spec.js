@@ -49,6 +49,10 @@ test.describe('Metadata templates (#6 #7)', () => {
     await page.click('.sample-card');
     await expect(page.locator('#sample-detail-content')).toContainText('Lake Opinicon');
     await expect(page.locator('#sample-detail-content')).toContainText('Sterivex');
+
+    // Units are case-sensitive: rendered labels must not be uppercased (µS/cm, pH).
+    const rendered = await page.locator('.detail-label', { hasText: 'Conductivity' }).evaluate((el) => el.innerText);
+    expect(rendered).toBe('Conductivity (µS/cm)');
   });
 
   test('editing a project keeps the template toggles and hides the picker', async ({ page }) => {

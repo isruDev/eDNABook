@@ -23,9 +23,11 @@ function toDatetimeLocalValue(isoString) {
  *
  * @param {HTMLElement} container - Element to append the history section to.
  * @param {import('../edit-log.js').EditLogEntry[]|undefined} editLog - The sample's edit log.
+ * @param {import('../field-model.js').FieldDef[]} fields - Project fields, used to show labels instead of keys.
  * @returns {void}
  */
-function renderEditHistory(container, editLog) {
+function renderEditHistory(container, editLog, fields) {
+  const labels = Object.fromEntries(fields.map((f) => [f.key, f.label]));
   if (!editLog || editLog.length === 0) return;
   const section = document.createElement('section');
   section.id = 'edit-history';
@@ -35,7 +37,7 @@ function renderEditHistory(container, editLog) {
   const list = document.createElement('ul');
   editLog.forEach((entry) => {
     const item = document.createElement('li');
-    item.textContent = formatEditLogEntry(entry);
+    item.textContent = formatEditLogEntry(entry, labels);
     list.appendChild(item);
   });
   section.appendChild(heading);
@@ -155,7 +157,7 @@ export async function renderSampleDetail(sampleId) {
     content.appendChild(addBtn);
   }
 
-  renderEditHistory(content, sample.editLog);
+  renderEditHistory(content, sample.editLog, fields);
 
   const detailView = document.querySelector('[data-view="sample-detail"]');
   detailView.querySelector('.btn-back').onclick = () =>
