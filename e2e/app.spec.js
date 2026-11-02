@@ -67,6 +67,11 @@ test.describe('eDNALite PWA', () => {
     await page.fill('#manual-sample-id', 'SAMPLE-001');
     await page.click('#scanner-container .btn-primary');
 
+    // Photo prompt: skip the site photo
+    await page.waitForSelector('#skip-photo-btn', { state: 'visible', timeout: 5000 });
+    await expect(page.locator('#skip-photo-btn')).toHaveText('Not Now');
+    await page.click('#skip-photo-btn');
+
     // Wait for form to appear
     await page.waitForSelector('#sample-form', { state: 'visible', timeout: 5000 });
 

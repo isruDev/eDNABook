@@ -93,32 +93,42 @@ export async function renderSampleEntry(projectId) {
   if (qrReader) qrReader.innerHTML = '';
 
   let scannerInstance = null;
+  // Set once the user picks manual entry or leaves, so a camera that finishes
+  // starting afterwards is stopped and its error text cannot overwrite the input.
+  let scannerUnwanted = false;
+
+  /**
+   * Stops the camera scanner if it is running.
+   *
+   * @returns {Promise<void>}
+   */
+  const releaseScanner = async () => {
+    if (scannerInstance) {
+      const instance = scannerInstance;
+      scannerInstance = null;
+      await stopScanner(instance);
+    }
+  };
 
   const handleSampleId = async (sampleId) => {
-    if (scannerInstance) {
-      await stopScanner(scannerInstance);
-      scannerInstance = null;
-    }
+    scannerUnwanted = true;
+    await releaseScanner();
     document.getElementById('scanner-container').style.display = 'none';
     await showPhotoPrompt(projectId, title, sampleId, fields);
   };
 
-  scannerInstance = await startScanner(
-    'qr-reader',
-    (decodedText) => handleSampleId(decodedText),
-    (errMsg) => {
-      const msgEl = document.getElementById('qr-reader');
-      if (msgEl) msgEl.textContent = errMsg;
-    }
-  );
-
+  // Handlers are attached before the scanner starts: starting (or failing to
+  // start) the camera can take seconds, and manual entry must work meanwhile.
   document.querySelector('[data-view="sample-entry"] .btn-back').onclick = async () => {
+    scannerUnwanted = true;
     stopFormGpsUpdates();
-    if (scannerInstance) await stopScanner(scannerInstance);
+    await releaseScanner();
     navigate(`#/project/${projectId}`);
   };
 
   document.getElementById('manual-entry-btn').onclick = () => {
+    scannerUnwanted = true;
+    releaseScanner();
     const readerEl = document.getElementById('qr-reader');
     readerEl.innerHTML = '';
 
@@ -134,7 +144,6 @@ export async function renderSampleEntry(projectId) {
     submitBtn.onclick = async () => {
       const val = input.value.trim();
       if (val) {
-        if (scannerInstance) await stopScanner(scannerInstance);
         handleSampleId(val);
       }
     };
@@ -142,6 +151,22 @@ export async function renderSampleEntry(projectId) {
     readerEl.appendChild(input);
     readerEl.appendChild(submitBtn);
   };
+
+  const started = await startScanner(
+    'qr-reader',
+    (decodedText) => handleSampleId(decodedText),
+    (errMsg) => {
+      if (scannerUnwanted) return;
+      const msgEl = document.getElementById('qr-reader');
+      if (msgEl) msgEl.textContent = errMsg;
+    }
+  );
+
+  if (scannerUnwanted) {
+    await stopScanner(started);
+  } else {
+    scannerInstance = started;
+  }
 }
 
 /**

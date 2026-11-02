@@ -140,6 +140,45 @@ describe('renderSampleEntry', () => {
     expect(document.getElementById('manual-entry-btn')).not.toBeNull();
   });
 
+  it('manual entry works while the scanner is still starting', async () => {
+    startScanner.mockReturnValue(new Promise(() => {}));
+    renderSampleEntry('proj-1');
+    await new Promise((r) => setTimeout(r, 0));
+
+    document.getElementById('manual-entry-btn').click();
+
+    expect(document.getElementById('manual-sample-id')).not.toBeNull();
+  });
+
+  it('a scanner error arriving after manual entry was chosen does not remove the manual input', async () => {
+    let finishStart;
+    startScanner.mockImplementation((id, onSuccess, onError) => new Promise((resolve) => {
+      finishStart = () => { onError('Camera unavailable. Use manual entry instead.'); resolve({ getState: () => 1 }); };
+    }));
+    const rendering = renderSampleEntry('proj-1');
+    await new Promise((r) => setTimeout(r, 0));
+
+    document.getElementById('manual-entry-btn').click();
+    finishStart();
+    await rendering;
+
+    expect(document.getElementById('manual-sample-id')).not.toBeNull();
+  });
+
+  it('stops a scanner that finishes starting after manual entry was chosen', async () => {
+    let finishStart;
+    const instance = { getState: () => 2 };
+    startScanner.mockImplementation(() => new Promise((resolve) => { finishStart = () => resolve(instance); }));
+    const rendering = renderSampleEntry('proj-1');
+    await new Promise((r) => setTimeout(r, 0));
+
+    document.getElementById('manual-entry-btn').click();
+    finishStart();
+    await rendering;
+
+    expect(stopScanner).toHaveBeenCalledWith(instance);
+  });
+
   it('shows the entry form when manual entry button is clicked', async () => {
     await renderSampleEntry('proj-1');
     document.getElementById('manual-entry-btn').click();
