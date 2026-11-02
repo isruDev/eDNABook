@@ -4,6 +4,12 @@ import { test, expect } from '@playwright/test';
 const MIN_INSET = 8;
 
 /**
+ * Small read-only pills stay compact on purpose (project rule: tight layouts),
+ * so they are not held to MIN_INSET.
+ */
+const COMPACT_PILLS = '.field-tag, .gps-pill';
+
+/**
  * Lists visible elements whose own text sits closer than MIN_INSET to their
  * visible edge (a border, an outline, or a background that differs from the
  * parent's).
@@ -12,7 +18,7 @@ const MIN_INSET = 8;
  * @returns {Promise<string[]>} One line per offending element: selector, side, inset.
  */
 function crampedText(page) {
-  return page.evaluate((min) => {
+  return page.evaluate(({ min, pills }) => {
     /**
      * Tests whether an element draws a visible boundary.
      *
@@ -40,13 +46,31 @@ function crampedText(page) {
       el.tagName.toLowerCase() + (el.id ? `#${el.id}` : '') +
       [...el.classList].map((c) => `.${c}`).join('');
 
+    /**
+     * Finds the element whose visible edge frames a text node: the nearest
+     * ancestor (or the parent itself) with a border, outline, or own background.
+     *
+     * @param {Element} el - Parent element of the text node.
+     * @returns {Element|null} The framing element, or null when nothing frames the text.
+     */
+    const frameOf = (el) => {
+      for (let cur = el; cur && cur !== document.body; cur = cur.parentElement) {
+        if (hasEdge(cur)) return cur;
+      }
+      return null;
+    };
+
     const out = [];
-    for (const el of document.querySelectorAll('body *')) {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (!node.textContent.trim() || !node.parentElement) continue;
+      const parent = node.parentElement;
+      if (getComputedStyle(parent).visibility === 'hidden') continue;
+      const el = frameOf(parent);
+      if (!el || el.matches(pills)) continue;
       const box = el.getBoundingClientRect();
-      if (box.width === 0 || box.height === 0 || !hasEdge(el)) continue;
-      if (getComputedStyle(el).visibility === 'hidden') continue;
-      for (const node of el.childNodes) {
-        if (node.nodeType !== Node.TEXT_NODE || !node.textContent.trim()) continue;
+      if (box.width === 0 || box.height === 0) continue;
+      {
         const range = document.createRange();
         range.selectNodeContents(node);
         for (const r of range.getClientRects()) {
@@ -59,7 +83,7 @@ function crampedText(page) {
       }
     }
     return [...new Set(out)];
-  }, MIN_INSET);
+  }, { min: MIN_INSET, pills: COMPACT_PILLS });
 }
 
 test('text keeps at least 8px from the edge of bordered or filled boxes', async ({ page }) => {
@@ -86,6 +110,8 @@ test('text keeps at least 8px from the edge of bordered or filled boxes', async 
   await page.click('.more-modal-close');
 
   await page.click('#scan-btn');
+  await page.waitForTimeout(1500); // let the scanner show its camera or fallback message
+  found.push(...await crampedText(page));
   await page.click('#manual-entry-btn');
   await page.fill('#manual-sample-id', 'INS-001');
   await page.click('#scanner-container .btn-primary');
@@ -97,3 +123,35 @@ test('text keeps at least 8px from the edge of bordered or filled boxes', async 
 
   expect([...new Set(found)]).toEqual([]);
 });
+
+for (const scheme of ['light', 'dark']) {
+  test(`camera-unavailable message is readable on the black scanner box (${scheme})`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.goto('/');
+    await page.click('#new-project-btn');
+    await page.fill('#project-title-input', 'Contrast Lake');
+    await page.click('#save-project-btn');
+    await page.click('#scan-btn');
+    await expect(page.locator('#qr-reader')).toContainText('Camera unavailable');
+
+    const ratio = await page.evaluate(() => {
+      /**
+       * Relative luminance of an "rgb(r, g, b)" color (WCAG formula).
+       *
+       * @param {string} css - Computed color string.
+       * @returns {number} Luminance from 0 (black) to 1 (white).
+       */
+      const lum = (css) => {
+        const [r, g, b] = css.match(/\d+/g).slice(0, 3).map((v) => {
+          const c = Number(v) / 255;
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const fg = lum(getComputedStyle(document.getElementById('qr-reader')).color);
+      const bg = lum(getComputedStyle(document.getElementById('scanner-container')).backgroundColor);
+      return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+    });
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
+}
