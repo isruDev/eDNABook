@@ -1,5 +1,6 @@
 // js/views/export-dialog.js
-import { getProject, getSamplesByProject, parseProject } from '../db.js';
+import { getProject, getSamplesByProject } from '../db.js';
+import { projectSchema } from '../field-model.js';
 import { showToast } from '../ui.js';
 import { generateCSV, generateSQLite, shareOrDownload } from '../export.js';
 import { sanitizeFilename } from '../util.js';
@@ -33,7 +34,7 @@ function todayString() {
 export async function showExportDialog(projectId) {
   const project = await getProject(projectId);
   const samples = await getSamplesByProject(projectId);
-  const { title } = parseProject(project.content);
+  const { title } = projectSchema(project);
 
   const filename = `${sanitizeFilename(title)}_${todayString()}`;
 

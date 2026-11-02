@@ -88,6 +88,16 @@ describe('renderProjectDashboard', () => {
     expect(tags[1].textContent).toBe('Collector');
   });
 
+  it('renders the title and field labels of a v2 (template-based) project', async () => {
+    getProject.mockResolvedValue({
+      id: 'proj-1', title: 'Lake Template', templateId: 'aquatic',
+      fields: [{ key: 'volume_filtered_ml', label: 'Volume Filtered (mL)', type: 'number', status: 'required' }],
+    });
+    await renderProjectDashboard('proj-1');
+    expect(document.getElementById('dashboard-title').textContent).toBe('Lake Template');
+    expect(document.getElementById('dashboard-fields').textContent).toContain('Volume Filtered (mL)');
+  });
+
   it('shows sample count', async () => {
     await renderProjectDashboard('proj-1');
     expect(document.getElementById('sample-count').textContent).toContain('2');

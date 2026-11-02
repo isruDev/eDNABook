@@ -1,6 +1,8 @@
 // js/views/sample-entry.js
-import { getProject, parseProject, getSampleBySampleId, createSample, updateSample } from '../db.js';
-import { showView, showToast, confirmDialog, vibrate, clearElement } from '../ui.js';
+import { getProject, getSampleBySampleId, createSample, updateSample } from '../db.js';
+import { projectSchema } from '../field-model.js';
+import { renderMetadataInputs, readMetadataInputs } from './metadata-inputs.js';
+import { showView, showToast, confirmDialog, vibrate } from '../ui.js';
 import { navigate } from '../app.js';
 import { startScanner, stopScanner } from '../scanner.js';
 import { getCurrentPosition, onGpsChange, restartGpsWatch, GPS_LOCK_THRESHOLD_M } from '../gps.js';
@@ -81,7 +83,7 @@ export async function renderSampleEntry(projectId) {
     navigate('#/');
     return;
   }
-  const { title, fields } = parseProject(project.content);
+  const { title, fields } = projectSchema(project);
 
   showView('sample-entry');
 
@@ -175,7 +177,7 @@ export async function renderSampleEntry(projectId) {
  * @param {string} projectId - The project ID.
  * @param {string} projectTitle - The parsed project title.
  * @param {string} sampleId - The scanned sample identifier.
- * @param {string[]} fields - Project metadata field names.
+ * @param {import('../field-model.js').FieldDef[]} fields - Project metadata fields.
  * @returns {Promise<void>}
  */
 async function showPhotoPrompt(projectId, projectTitle, sampleId, fields) {
@@ -221,7 +223,7 @@ async function showPhotoPrompt(projectId, projectTitle, sampleId, fields) {
  * photo section, and save/cancel actions.
  *
  * @param {string} projectId - The ID of the parent project.
- * @param {string[]} fields - Custom metadata field names defined by the project.
+ * @param {import('../field-model.js').FieldDef[]} fields - Metadata fields defined by the project.
  * @param {string} sampleId - The scanned or manually entered sample identifier.
  * @param {string} [existingId] - When provided, the form updates the existing sample instead of creating one.
  * @param {File|null} [photoFile=null] - Captured photo file, or null if no photo.
@@ -268,41 +270,9 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
   document.getElementById('retake-gps-btn').onclick = () => restartGpsWatch();
 
   const metaContainer = document.getElementById('metadata-fields');
-  clearElement(metaContainer);
-  fields.forEach((field) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'form-field';
+  renderMetadataInputs(metaContainer, fields);
 
-    if (field.type === 'checkbox') {
-      const checkWrapper = document.createElement('div');
-      checkWrapper.className = 'checkbox-field';
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.id = `field-${field.name}`;
-      input.dataset.field = field.name;
-      const checkLabel = document.createElement('label');
-      checkLabel.setAttribute('for', `field-${field.name}`);
-      checkLabel.className = 'checkbox-label';
-      checkLabel.textContent = field.name;
-      checkWrapper.appendChild(input);
-      checkWrapper.appendChild(checkLabel);
-      wrapper.appendChild(checkWrapper);
-    } else {
-      const label = document.createElement('label');
-      label.setAttribute('for', `field-${field.name}`);
-      label.textContent = field.name;
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.id = `field-${field.name}`;
-      input.dataset.field = field.name;
-      wrapper.appendChild(label);
-      wrapper.appendChild(input);
-    }
-
-    metaContainer.appendChild(wrapper);
-  });
-
-  // Photo section — sibling of #metadata-fields, so clearElement(metaContainer)
+  // Photo section — sibling of #metadata-fields, so re-rendering the fields
   // does NOT remove it. Explicitly drop any leftover from a prior render or
   // every re-entry stacks another photo section in the DOM.
   const staleSection = document.getElementById('photo-section');
@@ -386,10 +356,7 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
     stopFormGpsUpdates();
 
     const scannedAt = document.getElementById('sample-datetime').value;
-    const metadata = {};
-    metaContainer.querySelectorAll('input[data-field]').forEach((input) => {
-      metadata[input.dataset.field] = input.type === 'checkbox' ? String(input.checked) : input.value;
-    });
+    const metadata = readMetadataInputs(metaContainer);
 
     const payload = {
       sampleId,

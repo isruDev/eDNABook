@@ -192,6 +192,23 @@ describe('renderSampleDetail', () => {
     expect(addBtn).not.toBeNull();
   });
 
+  it('shows v2 field labels with values looked up by field key', async () => {
+    getProject.mockResolvedValue({
+      id: 'proj-1', title: 'Lake', templateId: 'aquatic',
+      fields: [
+        { key: 'ph', label: 'pH', type: 'number', status: 'optional' },
+        { key: 'qaqc_gloves_used', label: 'QA/QC: Sterile Gloves Worn?', type: 'checkbox', status: 'qaqc' },
+      ],
+    });
+    getSample.mockResolvedValue({ ...MOCK_SAMPLE, metadata: { ph: '7.2', qaqc_gloves_used: 'true' } });
+    await renderSampleDetail('sample-1');
+    const text = document.getElementById('sample-detail-content').textContent;
+    expect(text).toContain('pH');
+    expect(text).toContain('7.2');
+    expect(text).toContain('QA/QC: Sterile Gloves Worn?');
+    expect(text).toContain('Yes');
+  });
+
   it('shows the edit history, one line per edit', async () => {
     getSample.mockResolvedValue({
       ...MOCK_SAMPLE,
@@ -261,6 +278,23 @@ describe('renderSampleEdit', () => {
     const inputs = document.querySelectorAll('#edit-metadata-fields input');
     expect(inputs[0].value).toBe('River A');
     expect(inputs[1].value).toBe('Jane');
+  });
+
+  it('edit form for a v2 project saves values under field keys', async () => {
+    getProject.mockResolvedValue({
+      id: 'proj-1', title: 'Lake', templateId: 'aquatic',
+      fields: [{ key: 'ph', label: 'pH', type: 'number', status: 'optional' }],
+    });
+    getSample.mockResolvedValue({ ...MOCK_SAMPLE, metadata: { ph: '7.2' } });
+    await renderSampleEdit('sample-1');
+
+    const input = document.querySelector('#edit-metadata-fields input');
+    expect(input.value).toBe('7.2');
+    input.value = '7.6';
+    document.getElementById('edit-sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(updateSample).toHaveBeenCalledWith('sample-1', expect.objectContaining({ metadata: { ph: '7.6' } }));
   });
 
   it('calls updateSample with correct data on submit', async () => {

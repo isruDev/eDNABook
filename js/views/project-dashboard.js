@@ -4,9 +4,9 @@ import {
   getSamplesByProject,
   deleteProject,
   deleteSample,
-  parseProject,
 } from '../db.js';
 import { clearElement, showView, showToast, confirmDialog, formatDate } from '../ui.js';
+import { projectSchema } from '../field-model.js';
 import { navigate } from '../app.js';
 import { showExportDialog } from './export-dialog.js';
 
@@ -28,7 +28,7 @@ export async function renderProjectDashboard(projectId) {
     navigate('#/');
     return;
   }
-  const { title, fields } = parseProject(project.content);
+  const { title, fields } = projectSchema(project);
   const samples = await getSamplesByProject(projectId);
 
   document.getElementById('dashboard-title').textContent = title;
@@ -39,7 +39,7 @@ export async function renderProjectDashboard(projectId) {
   fields.forEach((field) => {
     const tag = document.createElement('span');
     tag.className = 'field-tag';
-    tag.textContent = field.name;
+    tag.textContent = field.label;
     fieldsContainer.appendChild(tag);
   });
 

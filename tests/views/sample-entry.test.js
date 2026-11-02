@@ -275,27 +275,27 @@ describe('photo prompt after scan', () => {
 describe('renderEntryForm', () => {
   it('displays sample ID as read-only', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }, { key: 'Collector', label: 'Collector', type: 'text', status: 'optional' }], 'S-100');
     expect(document.getElementById('display-sample-id').textContent).toBe('S-100');
   });
 
   it('pre-populates datetime to approximately now', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }, { key: 'Collector', label: 'Collector', type: 'text', status: 'optional' }], 'S-100');
     const dtInput = document.getElementById('sample-datetime');
     expect(dtInput.value).not.toBe('');
   });
 
   it('renders an input for each metadata field', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }, { name: 'Weather', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }, { key: 'Collector', label: 'Collector', type: 'text', status: 'optional' }, { key: 'Weather', label: 'Weather', type: 'text', status: 'optional' }], 'S-100');
     const inputs = document.querySelectorAll('#metadata-fields input');
     expect(inputs).toHaveLength(3);
   });
 
   it('shows GPS coordinates when location is available', async () => {
     getCurrentPosition.mockResolvedValue({ latitude: 47.6, longitude: -122.3, accuracy: 8 });
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
     const gpsText = document.getElementById('gps-value').textContent;
     expect(gpsText).toContain('47.6');
     expect(gpsText).toContain('-122.3');
@@ -303,14 +303,14 @@ describe('renderEntryForm', () => {
 
   it('shows warning text when GPS is unavailable', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
     const gpsText = document.getElementById('gps-value').textContent.toLowerCase();
     expect(gpsText).toContain('unavailable');
   });
 
   it('saves a new sample on form submit', async () => {
     getCurrentPosition.mockResolvedValue({ latitude: 47.6, longitude: -122.3, accuracy: 8 });
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }, { name: 'Collector', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }, { key: 'Collector', label: 'Collector', type: 'text', status: 'optional' }], 'S-100');
 
     document.querySelectorAll('#metadata-fields input')[0].value = 'River A';
     document.querySelectorAll('#metadata-fields input')[1].value = 'Jane';
@@ -335,7 +335,7 @@ describe('renderEntryForm', () => {
   it('calls updateSample when existingId is provided', async () => {
     getCurrentPosition.mockResolvedValue(null);
     updateSample.mockResolvedValue(undefined);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100', 'existing-s1');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100', 'existing-s1');
 
     document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 0));
@@ -346,7 +346,7 @@ describe('renderEntryForm', () => {
   it('updating an existing sample without a new photo leaves its saved photo alone', async () => {
     getCurrentPosition.mockReturnValue(null);
     updateSample.mockResolvedValue(undefined);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100', 'existing-s1');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100', 'existing-s1');
 
     document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 0));
@@ -358,7 +358,7 @@ describe('renderEntryForm', () => {
     getCurrentPosition.mockReturnValue(null);
     updateSample.mockResolvedValue(undefined);
     const file = new File(['d'], 'new.jpg', { type: 'image/jpeg' });
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100', 'existing-s1', file);
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100', 'existing-s1', file);
 
     document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 0));
@@ -371,21 +371,21 @@ describe('renderEntryForm', () => {
     confirmDialog.mockResolvedValue(false);
     getCurrentPosition.mockResolvedValue(null);
 
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-DUP');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-DUP');
 
     expect(confirmDialog).toHaveBeenCalled();
   });
 
   it('cancel button navigates to project dashboard', async () => {
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
     document.getElementById('cancel-sample-btn').click();
     expect(navigate).toHaveBeenCalledWith('#/project/proj-1');
   });
 
   it('Retake Time resets the date/time to now', async () => {
     getCurrentPosition.mockReturnValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
     const dtInput = document.getElementById('sample-datetime');
     dtInput.value = '2020-01-01T00:00';
 
@@ -398,7 +398,7 @@ describe('renderEntryForm', () => {
 
   it('updates GPS display and saved coordinates when a newer fix arrives', async () => {
     getCurrentPosition.mockReturnValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
 
     gpsListener({ latitude: 45.1, longitude: -75.2, accuracy: 6, state: 'locked' });
     expect(document.getElementById('gps-value').textContent).toContain('45.1');
@@ -412,7 +412,7 @@ describe('renderEntryForm', () => {
 
   it('warns when GPS accuracy is worse than 15 m', async () => {
     getCurrentPosition.mockReturnValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
 
     gpsListener({ latitude: 45.1, longitude: -75.2, accuracy: 40, state: 'locking' });
     const gpsEl = document.getElementById('gps-value');
@@ -428,7 +428,7 @@ describe('renderEntryForm', () => {
     restartGpsWatch.mockImplementation(() => {
       gpsListener({ latitude: null, longitude: null, accuracy: null, state: 'waiting' });
     });
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
 
     document.getElementById('retake-gps-btn').click();
 
@@ -442,14 +442,14 @@ describe('renderEntryForm', () => {
 
   it('stops listening to GPS updates when the form is cancelled', async () => {
     getCurrentPosition.mockReturnValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
     document.getElementById('cancel-sample-btn').click();
     expect(gpsUnsubscribe).toHaveBeenCalled();
   });
 
   it('stops listening to GPS updates after saving', async () => {
     getCurrentPosition.mockReturnValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
     document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 0));
     expect(gpsUnsubscribe).toHaveBeenCalled();
@@ -458,7 +458,7 @@ describe('renderEntryForm', () => {
   it('labels the photo retake button "Retake Photo"', async () => {
     getCurrentPosition.mockReturnValue(null);
     const file = new File(['d'], 'p.jpg', { type: 'image/jpeg' });
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100', undefined, file);
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100', undefined, file);
     expect(document.getElementById('retake-photo-btn').textContent).toBe('Retake Photo');
   });
 
@@ -470,9 +470,9 @@ describe('renderEntryForm', () => {
     // Add Photo button in the DOM. Fixed by removing any existing photo section
     // before inserting the new one.
     getCurrentPosition.mockResolvedValue(null);
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-101');
-    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-102');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-100');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-101');
+    await renderEntryForm('proj-1', [{ key: 'Site', label: 'Site', type: 'text', status: 'optional' }], 'S-102');
 
     const photoSections = document.querySelectorAll('#photo-section');
     expect(photoSections).toHaveLength(1);

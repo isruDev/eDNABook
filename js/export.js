@@ -1,6 +1,6 @@
 // js/export.js
 // UMD libs: loaded via <script> in browser (sets globals), via vitest alias in tests
-import { parseProject } from './db.js';
+import { projectSchema } from './field-model.js';
 import { formatEditLog } from './edit-log.js';
 
 // Resolve Papa: window global (browser) or dynamic import (test/Node)
@@ -64,19 +64,19 @@ const TRAILING_COLUMNS = Object.freeze([
  * metadata keys found on samples (values left under removed or renamed fields),
  * so no stored value is ever missing from an export.
  *
- * @param {Array<{name: string, type: string}>} fields - Project fields from parseProject().
+ * @param {import('./field-model.js').FieldDef[]} fields - Project fields from projectSchema().
  * @param {import('./db.js').Sample[]} samples - Samples being exported.
- * @returns {Array<{name: string, type: string}>} Project fields followed by extra
+ * @returns {import('./field-model.js').FieldDef[]} Project fields followed by extra
  *   keys in first-seen order (typed as text).
  */
 function exportFields(fields, samples) {
-  const known = new Set(fields.map((f) => f.name));
+  const known = new Set(fields.map((f) => f.key));
   const extra = [];
   for (const sample of samples) {
     for (const key of Object.keys(sample.metadata ?? {})) {
       if (!known.has(key)) {
         known.add(key);
-        extra.push({ name: key, type: 'text' });
+        extra.push({ key, label: key, type: 'text', status: 'optional' });
       }
     }
   }
@@ -113,7 +113,7 @@ function fixedHeaders() {
  * Extracts a row of values from a sample in fixed-column order plus project-specific fields.
  *
  * @param {import('./db.js').Sample} sample - The sample record to serialize.
- * @param {Array<{name: string, type: string}>} fields - Project-specific field definitions from parseProject().
+ * @param {import('./field-model.js').FieldDef[]} fields - Fields to export (from exportFields()).
  * @param {string} projectTitle - Project title to emit in the Project Name column.
  * @returns {Array<string|number|null>} Ordered array of values matching the column layout.
  */
@@ -127,7 +127,7 @@ function sampleToRow(sample, fields, projectTitle) {
     sample.gpsAccuracy ?? null,
     sample.photoFilename ?? '',
   ];
-  const meta = fields.map((f) => (sample.metadata ?? {})[f.name] ?? '');
+  const meta = fields.map((f) => (sample.metadata ?? {})[f.key] ?? '');
   return [...fixed, ...meta, formatEditLog(sample.editLog)];
 }
 
@@ -136,7 +136,7 @@ function sampleToRow(sample, fields, projectTitle) {
  *
  * Column order: Project Name, eventID, eventDate, decimalLatitude, decimalLongitude,
  * GPS Accuracy, Photo, then each project-specific field in the order defined in
- * parseProject(project.content).fields, then any other metadata keys stored on
+ * projectSchema(project).fields (labels as headers), then any other metadata keys stored on
  * samples (values under removed or renamed fields), then edit_log. The four
  * Darwin Core fields are emitted
  * with exact DwC camelCase so exported CSVs are drop-in ready for GBIF/NCBI
@@ -152,9 +152,9 @@ function sampleToRow(sample, fields, projectTitle) {
  * shareOrDownload(csv, 'export.csv', 'text/csv');
  */
 export function generateCSV(project, samples) {
-  const { title, fields: projectFields } = parseProject(project.content);
+  const { title, fields: projectFields } = projectSchema(project);
   const fields = exportFields(projectFields, samples);
-  const headers = [...fixedHeaders(), ...fields.map(f => f.name), ...TRAILING_COLUMNS.map((c) => c.header)];
+  const headers = [...fixedHeaders(), ...fields.map((f) => f.label), ...TRAILING_COLUMNS.map((c) => c.header)];
   const dataRows = samples.map((s) => sampleToRow(s, fields, title));
 
   return Papa.unparse([headers, ...dataRows]);
@@ -186,7 +186,7 @@ export function generateCSV(project, samples) {
  * shareOrDownload(bytes, 'export.db', 'application/x-sqlite3');
  */
 export async function generateSQLite(project, samples, locateFile = () => './lib/sql-wasm.wasm') {
-  const { title, fields: projectFields } = parseProject(project.content);
+  const { title, fields: projectFields } = projectSchema(project);
   const fields = exportFields(projectFields, samples);
 
   // initSqlJs loaded via <script> tag (UMD, sets window.initSqlJs)
@@ -197,7 +197,7 @@ export async function generateSQLite(project, samples, locateFile = () => './lib
 
   const fixedColDefs = FIXED_COLUMNS.map((c) => `"${c.column}" ${c.type}`);
   const reserved = new Set([...FIXED_COLUMNS, ...TRAILING_COLUMNS].map((c) => c.column));
-  const metaColDefs = uniqueColumnNames(fields.map((f) => toSnakeCase(f.name)), reserved)
+  const metaColDefs = uniqueColumnNames(fields.map((f) => toSnakeCase(f.label)), reserved)
     .map((name) => `"${name}" TEXT`);
   const trailingColDefs = TRAILING_COLUMNS.map((c) => `"${c.column}" ${c.type}`);
   const colDefs = [...fixedColDefs, ...metaColDefs, ...trailingColDefs].join(', ');

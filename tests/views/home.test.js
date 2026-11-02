@@ -103,6 +103,21 @@ describe('renderHome', () => {
     expect(cards.length).toBe(2);
   });
 
+  it('shows title and field count for a v2 (template-based) project', async () => {
+    getAllProjects.mockResolvedValue([{
+      id: 'p9', title: 'Lake Template', templateId: 'aquatic', updatedAt: '2026-03-17T10:00:00.000Z',
+      fields: [
+        { key: 'samplers', label: 'Sampler(s)', type: 'text', status: 'required' },
+        { key: 'ph', label: 'pH', type: 'number', status: 'optional' },
+      ],
+    }]);
+    getSamplesByProject.mockResolvedValue([]);
+    await renderHome();
+    const card = document.querySelector('.project-card');
+    expect(card.textContent).toContain('Lake Template');
+    expect(card.textContent).toContain('2 fields');
+  });
+
   it('displays the correct title in each project card', async () => {
     getAllProjects.mockResolvedValue([
       { id: 'p1', content: 'River Survey\nCollector\nSite', updatedAt: '2026-03-17T10:00:00.000Z' },

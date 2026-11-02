@@ -14,6 +14,7 @@ import Papa from '../lib/papaparse.min.js';
 import {
   initDB,
   createProject,
+  createProjectFromSchema,
   getProject,
   createSample,
   updateSample,
@@ -325,6 +326,28 @@ describe('integration: export generates CSV from saved samples', () => {
     const [header, dataRow] = Papa.unparse.mock.calls.at(-1)[0];
     expect(dataRow[header.indexOf('Photo')]).toBe('Photo_Link_Test_PHOTO-001.jpg');
 
+    db.close();
+  });
+
+  it('generateCSV exports a v2 project, reading each value by its field key', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProjectFromSchema({
+      title: 'Lake', templateId: 'aquatic',
+      fields: [{ key: 'ph', label: 'pH', type: 'number', status: 'optional' }],
+    }, db);
+    await createSample(project.id, {
+      sampleId: 'V2-001', scannedAt: '2026-03-17T11:00',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: { ph: '7.3' },
+    }, db);
+
+    const samples = await getSamplesByProject(project.id, db);
+    Papa.unparse.mockReturnValue('row');
+    generateCSV(await getProject(project.id, db), samples);
+
+    const [header, dataRow] = Papa.unparse.mock.calls.at(-1)[0];
+    expect(dataRow[0]).toBe('Lake');
+    expect(header).toContain('pH');
+    expect(dataRow[header.indexOf('pH')]).toBe('7.3');
     db.close();
   });
 

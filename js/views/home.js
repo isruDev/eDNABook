@@ -1,16 +1,17 @@
-import { getAllProjects, getSamplesByProject, parseProject } from '../db.js';
+import { getAllProjects, getSamplesByProject } from '../db.js';
+import { projectSchema } from '../field-model.js';
 import { showView, formatDate, clearElement, createElement } from '../ui.js';
 import { navigate } from '../app.js';
 
 /**
  * Builds a single project card element.
  *
- * @param {{ id: string, content: string, updatedAt: string }} project - Project record from the database.
+ * @param {import('../db.js').Project} project - Project record from the database (v1 or v2).
  * @param {number} sampleCount - Number of samples associated with this project.
  * @returns {HTMLElement} A card element populated with project summary data.
  */
 function buildProjectCard(project, sampleCount) {
-  const { title, fields } = parseProject(project.content);
+  const { title, fields } = projectSchema(project);
 
   const heading = createElement('h2', {}, title);
 

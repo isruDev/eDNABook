@@ -1,5 +1,7 @@
 // js/views/sample-detail.js
-import { getSample, getProject, parseProject, updateSample, deleteSample } from '../db.js';
+import { getSample, getProject, updateSample, deleteSample } from '../db.js';
+import { projectSchema } from '../field-model.js';
+import { renderMetadataInputs, readMetadataInputs } from './metadata-inputs.js';
 import { showView, showToast, confirmDialog, vibrate, clearElement, formatDate } from '../ui.js';
 import { navigate } from '../app.js';
 import { capturePhoto, savePhotoToDevice } from '../photo.js';
@@ -65,7 +67,7 @@ export async function renderSampleDetail(sampleId) {
     navigate('#/');
     return;
   }
-  const { fields } = parseProject(project.content);
+  const { fields } = projectSchema(project);
 
   const content = document.getElementById('sample-detail-content');
   clearElement(content);
@@ -107,11 +109,11 @@ export async function renderSampleDetail(sampleId) {
   }
 
   fields.forEach((field) => {
-    const val = (sample.metadata || {})[field.name] || '';
+    const val = (sample.metadata || {})[field.key] || '';
     if (field.type === 'checkbox') {
-      addRow(field.name, val === 'true' ? 'Yes' : 'No');
+      addRow(field.label, val === 'true' ? 'Yes' : 'No');
     } else {
-      addRow(field.name, val);
+      addRow(field.label, val);
     }
   });
 
@@ -124,7 +126,7 @@ export async function renderSampleDetail(sampleId) {
     retakeBtn.id = 'retake-photo-detail-btn';
     retakeBtn.textContent = 'Retake Photo';
     retakeBtn.onclick = async () => {
-      const { title } = parseProject(project.content);
+      const { title } = projectSchema(project);
       const file = await capturePhoto(title, sample.sampleId);
       if (file) {
         await savePhotoToDevice(file);
@@ -141,7 +143,7 @@ export async function renderSampleDetail(sampleId) {
     addBtn.id = 'add-photo-detail-btn';
     addBtn.textContent = 'Add Photo';
     addBtn.onclick = async () => {
-      const { title } = parseProject(project.content);
+      const { title } = projectSchema(project);
       const file = await capturePhoto(title, sample.sampleId);
       if (file) {
         await savePhotoToDevice(file);
@@ -213,7 +215,7 @@ export async function renderSampleEdit(sampleId) {
     navigate('#/');
     return;
   }
-  const { fields } = parseProject(project.content);
+  const { fields } = projectSchema(project);
 
   document.getElementById('edit-display-sample-id').textContent = sample.sampleId;
   document.getElementById('edit-sample-datetime').value = toDatetimeLocalValue(sample.scannedAt);
@@ -228,41 +230,7 @@ export async function renderSampleEdit(sampleId) {
   }
 
   const metaContainer = document.getElementById('edit-metadata-fields');
-  clearElement(metaContainer);
-  fields.forEach((field) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'form-field';
-
-    if (field.type === 'checkbox') {
-      const checkWrapper = document.createElement('div');
-      checkWrapper.className = 'checkbox-field';
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.id = `edit-field-${field.name}`;
-      input.dataset.field = field.name;
-      input.checked = (sample.metadata || {})[field.name] === 'true';
-      const checkLabel = document.createElement('label');
-      checkLabel.setAttribute('for', `edit-field-${field.name}`);
-      checkLabel.className = 'checkbox-label';
-      checkLabel.textContent = field.name;
-      checkWrapper.appendChild(input);
-      checkWrapper.appendChild(checkLabel);
-      wrapper.appendChild(checkWrapper);
-    } else {
-      const label = document.createElement('label');
-      label.setAttribute('for', `edit-field-${field.name}`);
-      label.textContent = field.name;
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.id = `edit-field-${field.name}`;
-      input.dataset.field = field.name;
-      input.value = (sample.metadata || {})[field.name] || '';
-      wrapper.appendChild(label);
-      wrapper.appendChild(input);
-    }
-
-    metaContainer.appendChild(wrapper);
-  });
+  renderMetadataInputs(metaContainer, fields, sample.metadata ?? {}, 'edit-field');
 
   const editView = document.querySelector('[data-view="sample-edit"]');
   editView.querySelector('.btn-back').onclick = () =>
@@ -272,10 +240,7 @@ export async function renderSampleEdit(sampleId) {
     e.preventDefault();
 
     const scannedAt = document.getElementById('edit-sample-datetime').value;
-    const metadata = {};
-    metaContainer.querySelectorAll('input[data-field]').forEach((input) => {
-      metadata[input.dataset.field] = input.type === 'checkbox' ? String(input.checked) : input.value;
-    });
+    const metadata = readMetadataInputs(metaContainer);
 
     await updateSample(sampleId, {
       sampleId: sample.sampleId,

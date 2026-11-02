@@ -1,5 +1,6 @@
 // js/views/more-modal.js
-import { getAllProjects, createProject, parseProject } from '../db.js';
+import { getAllProjects, createProject } from '../db.js';
+import { projectSchema } from '../field-model.js';
 import { TEMPLATES } from '../templates.js';
 
 /**
@@ -27,7 +28,7 @@ function navigateTo(hash) {
 async function createProjectFromTemplate(template) {
   const existing = await getAllProjects();
   const existingTitlesLower = new Set(
-    existing.map((p) => parseProject(p.content).title.toLowerCase())
+    existing.map((p) => projectSchema(p).title.toLowerCase())
   );
   let name = template.name;
   if (existingTitlesLower.has(name.toLowerCase())) {
