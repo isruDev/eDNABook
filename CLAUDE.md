@@ -45,8 +45,10 @@ All work is tracked in GitHub issues; known bugs live there, not in this file.
   `<number>-<slug>`. Commits/PRs reference it (`Fixes #N`) so the trail links up.
 - New bugs or scope found mid-task: file an issue (with labels + milestone),
   do not widen the current change.
-- Manuscript issues (`area:manuscript`, `owner:allen`) are text work Allen does
-  outside this repo; Claude supplies technical facts as issue comments.
+- Luke is the only developer and the only GitHub user; every issue is assigned
+  to him. Allen does not use GitHub. `owner:allen` marks paper-side work Allen
+  does offline; Luke relays his updates and closes those issues. Claude posts
+  technical facts Allen needs as issue comments for Luke to pass along.
 - Metadata templates source of truth: `docs/eDNALite_Templates.md`.
 - Do NOT change `DB_NAME` (`'edna-logger'`) in `js/db.js` during the rename to
   eDNALite; it would hide every user's stored data.
