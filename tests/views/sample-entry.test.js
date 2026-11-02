@@ -38,6 +38,9 @@ vi.mock('../../js/scanner.js', () => ({
 
 vi.mock('../../js/gps.js', () => ({
   getCurrentPosition: vi.fn(),
+  onGpsChange: vi.fn(),
+  restartGpsWatch: vi.fn(),
+  GPS_LOCK_THRESHOLD_M: 15,
 }));
 
 vi.mock('../../js/photo.js', () => ({
@@ -49,7 +52,11 @@ import { getProject, parseProject, getSampleBySampleId, createSample, updateSamp
 import { showView, showToast, confirmDialog, vibrate } from '../../js/ui.js';
 import { navigate } from '../../js/app.js';
 import { startScanner, stopScanner } from '../../js/scanner.js';
-import { getCurrentPosition } from '../../js/gps.js';
+import { getCurrentPosition, onGpsChange, restartGpsWatch } from '../../js/gps.js';
+
+/** @type {((status: object) => void)|null} Last GPS listener registered by the form. */
+let gpsListener = null;
+const gpsUnsubscribe = vi.fn();
 import { capturePhoto, savePhotoToDevice } from '../../js/photo.js';
 import { renderSampleEntry, renderEntryForm } from '../../js/views/sample-entry.js';
 
@@ -76,11 +83,17 @@ function buildDOM() {
           <p id="display-sample-id" class="readonly-value"></p>
         </div>
         <div class="form-field">
-          <label for="sample-datetime">Date / Time</label>
+          <div class="field-label-row">
+            <label for="sample-datetime">Date / Time</label>
+            <button type="button" class="btn-inline" id="retake-time-btn">Retake Time</button>
+          </div>
           <input type="datetime-local" id="sample-datetime">
         </div>
         <div class="form-field" id="gps-display">
-          <label>GPS Location</label>
+          <div class="field-label-row">
+            <label>GPS Location</label>
+            <button type="button" class="btn-inline" id="retake-gps-btn">Retake GPS</button>
+          </div>
           <p id="gps-value"></p>
         </div>
         <div id="metadata-fields"></div>
@@ -105,6 +118,8 @@ beforeEach(() => {
   getCurrentPosition.mockResolvedValue({ latitude: 47.6, longitude: -122.3, accuracy: 8 });
   capturePhoto.mockResolvedValue(null);
   savePhotoToDevice.mockResolvedValue(undefined);
+  gpsListener = null;
+  onGpsChange.mockImplementation((cb) => { gpsListener = cb; return gpsUnsubscribe; });
 });
 
 describe('renderSampleEntry', () => {
@@ -142,6 +157,15 @@ describe('photo prompt after scan', () => {
     const prompt = document.getElementById('photo-prompt');
     expect(prompt).not.toBeNull();
     expect(prompt.textContent).toContain('photo');
+  });
+
+  it('labels the skip button "Not Now"', async () => {
+    await renderSampleEntry('proj-1');
+    const onSuccess = startScanner.mock.calls[0][1];
+    await onSuccess('S-100');
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(document.getElementById('skip-photo-btn').textContent).toBe('Not Now');
   });
 
   it('skip button proceeds to entry form without photo', async () => {
@@ -295,6 +319,85 @@ describe('renderEntryForm', () => {
     await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
     document.getElementById('cancel-sample-btn').click();
     expect(navigate).toHaveBeenCalledWith('#/project/proj-1');
+  });
+
+  it('Retake Time resets the date/time to now', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    const dtInput = document.getElementById('sample-datetime');
+    dtInput.value = '2020-01-01T00:00';
+
+    document.getElementById('retake-time-btn').click();
+
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    expect(dtInput.value.startsWith(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T`)).toBe(true);
+  });
+
+  it('updates GPS display and saved coordinates when a newer fix arrives', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+
+    gpsListener({ latitude: 45.1, longitude: -75.2, accuracy: 6, state: 'locked' });
+    expect(document.getElementById('gps-value').textContent).toContain('45.1');
+
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(createSample).toHaveBeenCalledWith('proj-1', expect.objectContaining({
+      latitude: 45.1, longitude: -75.2, gpsAccuracy: 6,
+    }));
+  });
+
+  it('warns when GPS accuracy is worse than 15 m', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+
+    gpsListener({ latitude: 45.1, longitude: -75.2, accuracy: 40, state: 'locking' });
+    const gpsEl = document.getElementById('gps-value');
+    expect(gpsEl.classList.contains('gps-warning')).toBe(true);
+    expect(gpsEl.textContent.toLowerCase()).toContain('low accuracy');
+
+    gpsListener({ latitude: 45.1, longitude: -75.2, accuracy: 9, state: 'locked' });
+    expect(gpsEl.classList.contains('gps-warning')).toBe(false);
+  });
+
+  it('Retake GPS discards the current fix and restarts the GPS watch', async () => {
+    getCurrentPosition.mockReturnValue({ latitude: 47.6, longitude: -122.3, accuracy: 30 });
+    restartGpsWatch.mockImplementation(() => {
+      gpsListener({ latitude: null, longitude: null, accuracy: null, state: 'waiting' });
+    });
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+
+    document.getElementById('retake-gps-btn').click();
+
+    expect(restartGpsWatch).toHaveBeenCalledTimes(1);
+    expect(document.getElementById('gps-value').textContent.toLowerCase()).toContain('acquiring');
+
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(createSample).toHaveBeenCalledWith('proj-1', expect.objectContaining({ latitude: null }));
+  });
+
+  it('stops listening to GPS updates when the form is cancelled', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    document.getElementById('cancel-sample-btn').click();
+    expect(gpsUnsubscribe).toHaveBeenCalled();
+  });
+
+  it('stops listening to GPS updates after saving', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100');
+    document.getElementById('sample-form').dispatchEvent(new Event('submit', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(gpsUnsubscribe).toHaveBeenCalled();
+  });
+
+  it('labels the photo retake button "Retake Photo"', async () => {
+    getCurrentPosition.mockReturnValue(null);
+    const file = new File(['d'], 'p.jpg', { type: 'image/jpeg' });
+    await renderEntryForm('proj-1', [{ name: 'Site', type: 'text' }], 'S-100', undefined, file);
+    expect(document.getElementById('retake-photo-btn').textContent).toBe('Retake Photo');
   });
 
   it('does not leak duplicate #photo-section nodes when rendered multiple times', async () => {

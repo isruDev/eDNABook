@@ -3,8 +3,56 @@ import { getProject, parseProject, getSampleBySampleId, createSample, updateSamp
 import { showView, showToast, confirmDialog, vibrate, clearElement } from '../ui.js';
 import { navigate } from '../app.js';
 import { startScanner, stopScanner } from '../scanner.js';
-import { getCurrentPosition } from '../gps.js';
+import { getCurrentPosition, onGpsChange, restartGpsWatch, GPS_LOCK_THRESHOLD_M } from '../gps.js';
 import { capturePhoto, savePhotoToDevice } from '../photo.js';
+
+/**
+ * Unsubscribe handle for the entry form's live GPS listener, or null when the
+ * form is not listening.
+ *
+ * @type {(() => void)|null}
+ */
+let unsubscribeFormGps = null;
+
+/**
+ * Stops the entry form's live GPS updates, if any are active.
+ *
+ * @returns {void}
+ */
+function stopFormGpsUpdates() {
+  if (unsubscribeFormGps) {
+    unsubscribeFormGps();
+    unsubscribeFormGps = null;
+  }
+}
+
+/**
+ * Writes the GPS status line in the entry form and toggles the warning style.
+ *
+ * @param {HTMLElement} gpsEl - The #gps-value element.
+ * @param {{ latitude: number, longitude: number, accuracy: number }|null} position - Current fix, or null.
+ * @param {'acquiring'|'unavailable'} [emptyReason='unavailable'] - Message shown when position is null.
+ * @returns {void}
+ * @remarks A fix worse than GPS_LOCK_THRESHOLD_M is shown with a low-accuracy
+ * warning so the user can wait for a better fix or press Retake GPS.
+ */
+function renderGpsValue(gpsEl, position, emptyReason = 'unavailable') {
+  if (!position) {
+    gpsEl.textContent = emptyReason === 'acquiring'
+      ? 'Acquiring GPS...'
+      : 'Location unavailable -- GPS not captured';
+    gpsEl.classList.add('gps-warning');
+    return;
+  }
+  const coords = `Lat: ${position.latitude.toFixed(6)}, Lon: ${position.longitude.toFixed(6)} (+-${Math.round(position.accuracy)}m)`;
+  if (position.accuracy > GPS_LOCK_THRESHOLD_M) {
+    gpsEl.textContent = `${coords} -- low accuracy, wait or retake`;
+    gpsEl.classList.add('gps-warning');
+  } else {
+    gpsEl.textContent = coords;
+    gpsEl.classList.remove('gps-warning');
+  }
+}
 
 /**
  * Formats a Date object into a datetime-local input value string (YYYY-MM-DDTHH:MM).
@@ -65,6 +113,7 @@ export async function renderSampleEntry(projectId) {
   );
 
   document.querySelector('[data-view="sample-entry"] .btn-back').onclick = async () => {
+    stopFormGpsUpdates();
     if (scannerInstance) await stopScanner(scannerInstance);
     navigate(`#/project/${projectId}`);
   };
@@ -114,7 +163,7 @@ async function showPhotoPrompt(projectId, projectTitle, sampleId, fields) {
     <p>Take a site photo?</p>
     <div class="photo-prompt-actions">
       <button type="button" class="btn-primary" id="take-photo-btn">Take Photo</button>
-      <button type="button" class="btn-secondary" id="skip-photo-btn">Skip</button>
+      <button type="button" class="btn-secondary" id="skip-photo-btn">Not Now</button>
     </div>
   `;
   container.appendChild(prompt);
@@ -174,17 +223,24 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
   form.style.display = '';
 
   document.getElementById('display-sample-id').textContent = sampleId;
-  document.getElementById('sample-datetime').value = toDatetimeLocalValue(new Date());
+  const datetimeInput = document.getElementById('sample-datetime');
+  datetimeInput.value = toDatetimeLocalValue(new Date());
+  document.getElementById('retake-time-btn').onclick = () => {
+    datetimeInput.value = toDatetimeLocalValue(new Date());
+  };
 
-  const position = await getCurrentPosition();
+  let position = await getCurrentPosition();
   const gpsEl = document.getElementById('gps-value');
-  if (position) {
-    gpsEl.textContent = `Lat: ${position.latitude.toFixed(6)}, Lon: ${position.longitude.toFixed(6)} (+-${Math.round(position.accuracy)}m)`;
-    gpsEl.classList.remove('gps-warning');
-  } else {
-    gpsEl.textContent = 'Location unavailable -- GPS not captured';
-    gpsEl.classList.add('gps-warning');
-  }
+  renderGpsValue(gpsEl, position);
+
+  stopFormGpsUpdates();
+  unsubscribeFormGps = onGpsChange((status) => {
+    position = status.latitude === null
+      ? null
+      : { latitude: status.latitude, longitude: status.longitude, accuracy: status.accuracy };
+    renderGpsValue(gpsEl, position, status.state === 'waiting' ? 'acquiring' : 'unavailable');
+  });
+  document.getElementById('retake-gps-btn').onclick = () => restartGpsWatch();
 
   const metaContainer = document.getElementById('metadata-fields');
   clearElement(metaContainer);
@@ -251,7 +307,7 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
       const retakeBtn = document.createElement('button');
       retakeBtn.type = 'button';
       retakeBtn.className = 'btn-secondary';
-      retakeBtn.textContent = 'Retake';
+      retakeBtn.textContent = 'Retake Photo';
       retakeBtn.id = 'retake-photo-btn';
       retakeBtn.onclick = async () => {
         const file = await capturePhoto(projectTitle, sampleId);
@@ -295,11 +351,14 @@ export async function renderEntryForm(projectId, fields, sampleId, existingId, p
   renderPhotoSection();
   metaContainer.after(photoSection);
 
-  document.getElementById('cancel-sample-btn').onclick = () =>
+  document.getElementById('cancel-sample-btn').onclick = () => {
+    stopFormGpsUpdates();
     navigate(`#/project/${projectId}`);
+  };
 
   form.onsubmit = async (e) => {
     e.preventDefault();
+    stopFormGpsUpdates();
 
     const scannedAt = document.getElementById('sample-datetime').value;
     const metadata = {};

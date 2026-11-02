@@ -81,11 +81,17 @@
             <p id="display-sample-id" class="readonly-value"></p>
           </div>
           <div class="form-field">
-            <label for="sample-datetime">Date / Time</label>
+            <div class="field-label-row">
+              <label for="sample-datetime">Date / Time</label>
+              <button type="button" class="btn-inline" id="retake-time-btn">Retake Time</button>
+            </div>
             <input type="datetime-local" id="sample-datetime" />
           </div>
           <div class="form-field" id="gps-display">
-            <label>GPS Location</label>
+            <div class="field-label-row">
+              <label>GPS Location</label>
+              <button type="button" class="btn-inline" id="retake-gps-btn">Retake GPS</button>
+            </div>
             <p id="gps-value"></p>
           </div>
           <div id="metadata-fields"></div>

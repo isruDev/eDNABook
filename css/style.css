@@ -285,6 +285,38 @@ a {
   opacity: 0.8;
 }
 
+/* Small secondary action that sits on a form label row (Retake Time / GPS). */
+.btn-inline {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.875rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-inline:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.field-label-row label {
+  margin-bottom: 0;
+}
+
 .btn-large {
   width: 100%;
   height: 56px;
