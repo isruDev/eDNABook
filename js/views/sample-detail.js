@@ -32,7 +32,7 @@ function renderEditHistory(container, editLog, fields) {
   const section = document.createElement('section');
   section.id = 'edit-history';
   section.className = 'edit-history';
-  const heading = document.createElement('h3');
+  const heading = document.createElement('h2');
   heading.textContent = 'Edit history';
   const list = document.createElement('ul');
   editLog.forEach((entry) => {

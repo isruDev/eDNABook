@@ -931,7 +931,7 @@ button.empty-state:active,
   border-top: 1px solid var(--color-border);
 }
 
-.edit-history h3 {
+.edit-history h2 {
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--color-text-secondary);
