@@ -247,6 +247,33 @@ describe('sample CRUD', () => {
     db.close();
   });
 
+  it('createSample persists photoFilename to IndexedDB', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Survey\nField', db);
+    const created = await createSample(project.id, {
+      sampleId: 'S-PHOTO',
+      scannedAt: '2026-03-17T10:00:00.000Z',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: {},
+      photoFilename: 'Survey_S-PHOTO.jpg',
+    }, db);
+    const fetched = await getSample(created.id, db);
+    expect(fetched.photoFilename).toBe('Survey_S-PHOTO.jpg');
+    db.close();
+  });
+
+  it('createSample stores photoFilename as null when no photo was taken', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Survey\nField', db);
+    const created = await createSample(project.id, {
+      sampleId: 'S-NOPHOTO',
+      scannedAt: '2026-03-17T10:00:00.000Z',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: {},
+    }, db);
+    const fetched = await getSample(created.id, db);
+    expect(fetched.photoFilename).toBeNull();
+    db.close();
+  });
+
   it('getSamplesByProject returns samples sorted by scannedAt desc', async () => {
     const db = await initDB(uniqueDbName());
     const project = await createProject('Survey\nField', db);

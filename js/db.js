@@ -12,6 +12,7 @@ import { openDB } from 'idb';
  * @property {number|null} longitude
  * @property {number|null} gpsAccuracy
  * @property {Record<string, string>} metadata
+ * @property {string|null} photoFilename - Filename of the site photo saved to the device, or null.
  * @property {string} createdAt
  * @property {string} updatedAt
  */
@@ -174,7 +175,7 @@ export async function deleteProject(id, db) {
  * Creates a new sample record and persists it to the database.
  *
  * @param {string} projectId - UUID of the parent project.
- * @param {{ sampleId: string, scannedAt: string, latitude: number|null, longitude: number|null, gpsAccuracy: number|null, metadata: Record<string, string> }} sampleData - Sample data payload.
+ * @param {{ sampleId: string, scannedAt: string, latitude: number|null, longitude: number|null, gpsAccuracy: number|null, metadata: Record<string, string>, photoFilename?: string|null }} sampleData - Sample data payload. photoFilename defaults to null when omitted.
  * @param {import('idb').IDBPDatabase} [db] - Open database instance.
  * @returns {Promise<Sample>} The newly created sample record.
  */
@@ -190,6 +191,7 @@ export async function createSample(projectId, sampleData, db) {
     longitude: sampleData.longitude ?? null,
     gpsAccuracy: sampleData.gpsAccuracy ?? null,
     metadata: sampleData.metadata ?? {},
+    photoFilename: sampleData.photoFilename ?? null,
     createdAt: now,
     updatedAt: now,
   };

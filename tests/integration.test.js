@@ -300,4 +300,30 @@ describe('integration: export generates CSV from saved samples', () => {
 
     db.close();
   });
+
+  it('generateCSV includes the photo filename of a newly created sample', async () => {
+    const db = await initDB(uniqueDbName());
+    const project = await createProject('Photo Link Test\nSite', db);
+
+    await createSample(project.id, {
+      sampleId: 'PHOTO-001',
+      scannedAt: '2026-03-17T11:00:00.000Z',
+      latitude: null,
+      longitude: null,
+      gpsAccuracy: null,
+      metadata: { Site: 'Field 7' },
+      photoFilename: 'Photo_Link_Test_PHOTO-001.jpg',
+    }, db);
+
+    const samples = await getSamplesByProject(project.id, db);
+    const fetched = await getProject(project.id, db);
+
+    Papa.unparse.mockReturnValue('row');
+    generateCSV(fetched, samples);
+
+    const [header, dataRow] = Papa.unparse.mock.calls.at(-1)[0];
+    expect(dataRow[header.indexOf('Photo')]).toBe('Photo_Link_Test_PHOTO-001.jpg');
+
+    db.close();
+  });
 });
