@@ -3,6 +3,8 @@ import {
   parseProject,
   initDB,
   createProject,
+  createProjectFromSchema,
+  updateProjectSchema,
   getProject,
   getAllProjects,
   updateProject,
@@ -160,6 +162,50 @@ describe('initDB + project CRUD (read)', () => {
 // ---------------------------------------------------------------------------
 // updateProject + deleteProject
 // ---------------------------------------------------------------------------
+
+describe('v2 project schema storage', () => {
+  const FIELDS = [
+    { key: 'samplers', label: 'Sampler(s)', type: 'text', status: 'required' },
+    { key: 'ph', label: 'pH', type: 'number', status: 'optional' },
+  ];
+
+  it('createProjectFromSchema stores title, template, and fields', async () => {
+    const db = await initDB(uniqueDbName());
+    const created = await createProjectFromSchema({ title: 'Lake', templateId: 'aquatic', fields: FIELDS }, db);
+    const fetched = await getProject(created.id, db);
+    expect(fetched).toMatchObject({ title: 'Lake', templateId: 'aquatic', fields: FIELDS });
+    expect(fetched.createdAt).toBeDefined();
+    db.close();
+  });
+
+  it('updateProjectSchema converts a v1 project and keeps its samples attached through a rename', async () => {
+    const db = await initDB(uniqueDbName());
+    const v1 = await createProject('River\nSite', db);
+    const sample = await createSample(v1.id, {
+      sampleId: 'S-1', scannedAt: '2026-03-17T10:00',
+      latitude: null, longitude: null, gpsAccuracy: null, metadata: { Site: 'North Bank' },
+    }, db);
+
+    await updateProjectSchema(v1.id, {
+      title: 'River',
+      templateId: null,
+      fields: [{ key: 'Site', label: 'Location', type: 'text', status: 'optional' }],
+    }, db);
+
+    const project = await getProject(v1.id, db);
+    expect(project.content).toBeUndefined();
+    expect(project.fields[0]).toMatchObject({ key: 'Site', label: 'Location' });
+    expect((await getSample(sample.id, db)).metadata).toEqual({ Site: 'North Bank' });
+    expect(project.createdAt).toBe(v1.createdAt);
+    db.close();
+  });
+
+  it('updateProjectSchema throws for an unknown project id', async () => {
+    const db = await initDB(uniqueDbName());
+    await expect(updateProjectSchema('nope', { title: 'X', templateId: null, fields: [] }, db)).rejects.toThrow();
+    db.close();
+  });
+});
 
 describe('updateProject + deleteProject', () => {
   it('updateProject updates content and updatedAt', async () => {

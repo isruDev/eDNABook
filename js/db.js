@@ -1,7 +1,12 @@
 import { openDB } from 'idb';
 import { diffSample } from './edit-log.js';
 
-/** @typedef {{ id: string, content: string, createdAt: string, updatedAt: string }} Project */
+/**
+ * A project record. v1 records carry `content`; v2 records carry `title`,
+ * `templateId`, and `fields`. Read either through projectSchema() in field-model.js.
+ *
+ * @typedef {{ id: string, content?: string, title?: string, templateId?: string|null, fields?: import('./field-model.js').FieldDef[], createdAt: string, updatedAt: string }} Project
+ */
 
 /**
  * @typedef {Object} Sample
@@ -92,6 +97,60 @@ export async function createProject(content, db) {
   };
   await conn.put('projects', project);
   return project;
+}
+
+/**
+ * Creates a project stored in the v2 schema format (title + field definitions).
+ *
+ * @param {{ title: string, templateId: string|null, fields: import('./field-model.js').FieldDef[] }} schema - Project schema.
+ * @param {import('idb').IDBPDatabase} [db] - Open database instance.
+ * @returns {Promise<Project>} The new project record.
+ * @example
+ * await createProjectFromSchema({ title: 'Lake', templateId: 'aquatic', fields: PRESETS.aquatic.fields });
+ */
+export async function createProjectFromSchema(schema, db) {
+  const conn = db ?? await initDB();
+  const now = new Date().toISOString();
+  const project = {
+    id: crypto.randomUUID(),
+    title: schema.title,
+    templateId: schema.templateId,
+    fields: schema.fields,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await conn.put('projects', project);
+  return project;
+}
+
+/**
+ * Replaces a project's title and field definitions, writing the v2 format.
+ *
+ * @param {string} id - The project UUID.
+ * @param {{ title: string, templateId: string|null, fields: import('./field-model.js').FieldDef[] }} schema - New schema.
+ * @param {import('idb').IDBPDatabase} [db] - Open database instance.
+ * @returns {Promise<Project>} The updated project record.
+ * @throws {Error} If no project exists with the given id.
+ * @remarks Converts v1 projects in place: the legacy content string is
+ * dropped. Field keys are kept by the caller, so samples stay attached and a
+ * label change never moves or loses stored values.
+ */
+export async function updateProjectSchema(id, schema, db) {
+  const conn = db ?? await initDB();
+  const existing = await conn.get('projects', id);
+  if (!existing) {
+    throw new Error(`Project not found: ${id}`);
+  }
+  const { content: _legacy, ...rest } = existing;
+  const updated = {
+    ...rest,
+    title: schema.title,
+    templateId: schema.templateId,
+    fields: schema.fields,
+    updatedAt: new Date().toISOString(),
+  };
+  await conn.put('projects', updated);
+  return updated;
 }
 
 /**
