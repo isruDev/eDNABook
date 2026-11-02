@@ -33,7 +33,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "hotfix": "node scripts/hotfix.mjs",
-    "screenshots": "playwright test --config scripts/walkthrough/playwright.config.js"
+    "screenshots": "playwright test --config scripts/walkthrough/playwright.config.js",
+    "examples": "node scripts/examples/build-examples.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

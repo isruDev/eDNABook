@@ -47,7 +47,7 @@ Editing a saved sample never overwrites the original silently: every change is r
 
 ### Step 4: Export and Backup
 
-When you return from the field, tap **Export Data** on a project dashboard and choose CSV or SQLite. Exports include every field, the photo filename, and the `edit_log` column.
+When you return from the field, tap **Export Data** on a project dashboard and choose CSV or SQLite. Exports include every field, the photo filename, and the `edit_log` column. Example exports for both templates are in [examples/](examples/).
 
 eDNALite stores data only on the device. Nothing is synced to a server when connectivity returns, so export and back up your CSV or SQLite files after each sampling day.
 
@@ -101,6 +101,9 @@ npx playwright test
 
 # Regenerate the README walkthrough screenshots (SCHEME=dark for dark mode)
 npm run screenshots
+
+# Rebuild the example exports in examples/ after an export change
+npm run examples
 ```
 
 Open `http://localhost:8080` in a modern browser. The service worker and camera APIs require a secure origin, so localhost or an HTTPS deployment is required.
@@ -135,7 +138,8 @@ css/style.css       All styles, dark-mode tokens, animations
 sw.js               Service worker (versioned precache)
 lib/                Vendored third-party libraries
 docs/               Template field list, term verification, walkthrough images
-scripts/            Release (hotfix) and screenshot scripts
+examples/           Example CSV, SQLite, and template files for each template
+scripts/            Release (hotfix), screenshot, and example-export scripts
 tests/              Vitest unit and integration tests
 e2e/                Playwright end-to-end specs
 ```

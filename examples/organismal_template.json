@@ -1,0 +1,187 @@
+{
+  "format": "ednalite-template",
+  "version": 1,
+  "title": "Opinicon Tissue Survey 2026",
+  "templateId": "organismal",
+  "fields": [
+    {
+      "key": "collectors",
+      "label": "Collector(s)",
+      "type": "text",
+      "status": "required",
+      "dwc": "recordedBy",
+      "mixs": "samp_collect_by"
+    },
+    {
+      "key": "site_name",
+      "label": "Site / Locality Name",
+      "type": "text",
+      "status": "required",
+      "dwc": "locality / locationID",
+      "mixs": "geo_loc_name"
+    },
+    {
+      "key": "organism_group",
+      "label": "Organism Group",
+      "type": "choice",
+      "status": "required",
+      "dwc": "kingdom / taxonRank",
+      "mixs": "env_broad_scale",
+      "options": [
+        "Animalia (Vertebrate)",
+        "Animalia (Invertebrate)",
+        "Plantae (Vascular)",
+        "Plantae (Bryophyte/Algae)",
+        "Fungi/Lichen"
+      ]
+    },
+    {
+      "key": "taxon_id",
+      "label": "Taxon / Provisional ID",
+      "type": "text",
+      "status": "required",
+      "dwc": "scientificName / verbatimIdentification",
+      "mixs": "host_sci_name"
+    },
+    {
+      "key": "host_tag_id",
+      "label": "Individual / Host Tag ID",
+      "type": "text",
+      "status": "optional",
+      "dwc": "organismID",
+      "mixs": "host_subject_id"
+    },
+    {
+      "key": "tissue",
+      "label": "Tissue / Sample Material",
+      "type": "choice",
+      "status": "required",
+      "dwc": "preparations",
+      "mixs": "samp_mat_type / host_body_product",
+      "options": [
+        "Leaf/Needle punch",
+        "Root/Rhizosphere",
+        "Bark/Cambium",
+        "Seed/Fruit",
+        "Mucosal/Skin swab",
+        "Fin/Toe/Ear clip",
+        "Blood",
+        "Feather/Hair",
+        "Fecal/Scat",
+        "Whole organism"
+      ]
+    },
+    {
+      "key": "preservation",
+      "label": "Preservation & Container",
+      "type": "choice",
+      "status": "required",
+      "dwc": "preparations",
+      "mixs": "samp_store_sol",
+      "options": [
+        "95% Ethanol (Cryovial)",
+        "RNAlater (Cryovial)",
+        "Silica desiccant (Zip-lock/Envelope)",
+        "Liquid N2 / Flash frozen",
+        "FTA Card",
+        "Pressed voucher"
+      ]
+    },
+    {
+      "key": "sample_size",
+      "label": "Sample Size / Quantity",
+      "type": "text",
+      "status": "optional",
+      "dwc": "sampleSizeValue",
+      "mixs": "samp_size"
+    },
+    {
+      "key": "life_stage",
+      "label": "Life Stage / Phenology",
+      "type": "choice",
+      "status": "optional",
+      "dwc": "lifeStage / reproductiveCondition",
+      "mixs": "host_life_stage",
+      "options": [
+        "Adult",
+        "Juvenile/Larva",
+        "Seedling/Sapling",
+        "Vegetative",
+        "Flowering",
+        "Fruiting",
+        "Senescent/Dormant"
+      ]
+    },
+    {
+      "key": "sex",
+      "label": "Sex",
+      "type": "choice",
+      "status": "optional",
+      "dwc": "sex",
+      "mixs": "host_sex",
+      "options": [
+        "Female",
+        "Male",
+        "Hermaphrodite",
+        "Monoecious",
+        "Dioecious",
+        "Indeterminate / N/A"
+      ]
+    },
+    {
+      "key": "biometric",
+      "label": "Biometric Measurement",
+      "type": "text",
+      "status": "optional",
+      "dwc": "dynamicProperties",
+      "mixs": "host_length / host_tot_mass"
+    },
+    {
+      "key": "health",
+      "label": "Health / Condition State",
+      "type": "choice",
+      "status": "optional",
+      "dwc": "occurrenceRemarks",
+      "mixs": "host_disease_stat",
+      "options": [
+        "Healthy/Asymptomatic",
+        "Lesions/Disease visible",
+        "Parasitized",
+        "Herbivory/Mechanical damage",
+        "Dead/Salvage"
+      ]
+    },
+    {
+      "key": "voucher_id",
+      "label": "Voucher ID / Catalog Link",
+      "type": "text",
+      "status": "optional",
+      "dwc": "otherCatalogNumbers",
+      "mixs": "source_mat_id"
+    },
+    {
+      "key": "microhabitat",
+      "label": "Microhabitat / Substrate",
+      "type": "text",
+      "status": "optional",
+      "dwc": "habitat",
+      "mixs": "env_medium"
+    },
+    {
+      "key": "qaqc_gloves_used",
+      "label": "QA/QC: Fresh Gloves Worn?",
+      "type": "checkbox",
+      "status": "qaqc",
+      "dwc": "dynamicProperties",
+      "mixs": "custom:qaqc_gloves_used"
+    },
+    {
+      "key": "qaqc_tools_sterilized",
+      "label": "QA/QC: Tools Sterilized?",
+      "type": "checkbox",
+      "status": "qaqc",
+      "dwc": "dynamicProperties",
+      "mixs": "custom:qaqc_tools_sterilized"
+    }
+  ]
+}

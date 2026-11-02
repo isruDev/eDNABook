@@ -1,0 +1,183 @@
+{
+  "format": "ednalite-template",
+  "version": 1,
+  "title": "Lake Opinicon eDNA 2026",
+  "templateId": "aquatic",
+  "fields": [
+    {
+      "key": "samplers",
+      "label": "Sampler(s)",
+      "type": "text",
+      "status": "required",
+      "dwc": "recordedBy",
+      "mixs": "samp_collect_by"
+    },
+    {
+      "key": "site_name",
+      "label": "Site / Location Name",
+      "type": "text",
+      "status": "required",
+      "dwc": "locality / locationID",
+      "mixs": "geo_loc_name"
+    },
+    {
+      "key": "sample_type",
+      "label": "Sample Type",
+      "type": "choice",
+      "status": "required",
+      "dwc": "basisOfRecord (MaterialSample)",
+      "mixs": "samp_type / neg_cont_type",
+      "options": [
+        "Field Sample",
+        "Field Negative Control (Blank)",
+        "Equipment Blank"
+      ]
+    },
+    {
+      "key": "env_medium",
+      "label": "Environmental Medium",
+      "type": "choice",
+      "status": "required",
+      "dwc": "habitat",
+      "mixs": "env_medium / env_local_scale",
+      "options": [
+        "Freshwater",
+        "Marine water",
+        "Estuarine",
+        "Sediment",
+        "Soil",
+        "Biofilm"
+      ]
+    },
+    {
+      "key": "collection_method",
+      "label": "Collection Method",
+      "type": "choice",
+      "status": "required",
+      "dwc": "samplingProtocol",
+      "mixs": "samp_collect_device",
+      "options": [
+        "Peristaltic pump",
+        "Syringe filtration",
+        "Surface grab",
+        "Passive sampler",
+        "Sediment core"
+      ]
+    },
+    {
+      "key": "volume_filtered_ml",
+      "label": "Volume Filtered (mL)",
+      "type": "number",
+      "status": "required",
+      "dwc": "sampleSizeValue (sampleSizeUnit = mL)",
+      "mixs": "samp_vol_we_dna_ext",
+      "unit": "mL"
+    },
+    {
+      "key": "filter",
+      "label": "Filter Material & Pore Size",
+      "type": "choice",
+      "status": "required",
+      "dwc": "samplingProtocol",
+      "mixs": "size_frac / filter_material",
+      "options": [
+        "0.22 µm Sterivex (PES)",
+        "0.45 µm Cellulose Nitrate",
+        "0.8 µm MCE",
+        "1.2 µm Glass Fiber",
+        "Other"
+      ]
+    },
+    {
+      "key": "preservation",
+      "label": "Preservation Method",
+      "type": "choice",
+      "status": "required",
+      "dwc": "preparations",
+      "mixs": "samp_store_sol",
+      "options": [
+        "Cold chain / Ice (4°C)",
+        "Frozen (-20°C)",
+        "95% Ethanol",
+        "Longmire's buffer",
+        "ATL buffer",
+        "Silica desiccant"
+      ]
+    },
+    {
+      "key": "water_temp_c",
+      "label": "Water Temperature (°C)",
+      "type": "number",
+      "status": "optional",
+      "dwc": "dynamicProperties",
+      "mixs": "temp",
+      "unit": "°C"
+    },
+    {
+      "key": "ph",
+      "label": "pH",
+      "type": "number",
+      "status": "optional",
+      "dwc": "dynamicProperties",
+      "mixs": "ph"
+    },
+    {
+      "key": "conductivity_us_cm",
+      "label": "Conductivity (µS/cm)",
+      "type": "number",
+      "status": "optional",
+      "dwc": "dynamicProperties",
+      "mixs": "conduc",
+      "unit": "µS/cm"
+    },
+    {
+      "key": "turbidity",
+      "label": "Turbidity (NTU) / Secchi (m)",
+      "type": "number",
+      "status": "optional",
+      "dwc": "dynamicProperties",
+      "mixs": "turbidity"
+    },
+    {
+      "key": "depth_m",
+      "label": "Sampling Depth (m)",
+      "type": "number",
+      "status": "optional",
+      "dwc": "minimumDepthInMeters",
+      "mixs": "depth",
+      "unit": "m"
+    },
+    {
+      "key": "species_observed",
+      "label": "Visual Species Observed",
+      "type": "text",
+      "status": "optional",
+      "dwc": "associatedTaxa / eventRemarks",
+      "mixs": "misc_param"
+    },
+    {
+      "key": "qaqc_gloves_used",
+      "label": "QA/QC: Sterile Gloves Worn?",
+      "type": "checkbox",
+      "status": "qaqc",
+      "dwc": "dynamicProperties",
+      "mixs": "custom:qaqc_gloves_used"
+    },
+    {
+      "key": "qaqc_gear_decon",
+      "label": "QA/QC: Gear Decontaminated?",
+      "type": "checkbox",
+      "status": "qaqc",
+      "dwc": "dynamicProperties",
+      "mixs": "custom:qaqc_gear_decon"
+    },
+    {
+      "key": "qaqc_sample_sealed",
+      "label": "QA/QC: Sample Sealed & Shaded?",
+      "type": "checkbox",
+      "status": "qaqc",
+      "dwc": "dynamicProperties",
+      "mixs": "custom:qaqc_sample_sealed"
+    }
+  ]
+}
