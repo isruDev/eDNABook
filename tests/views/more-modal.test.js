@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 vi.mock('../../js/db.js', () => ({
   getAllProjects: vi.fn(),
   createProject: vi.fn(),
+  createProjectFromSchema: vi.fn(),
   parseProject: vi.fn((content) => {
     const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     if (lines.length === 0) return { title: '', fields: [] };
@@ -12,7 +13,14 @@ vi.mock('../../js/db.js', () => ({
   }),
 }));
 
-import { getAllProjects, createProject } from '../../js/db.js';
+vi.mock('../../js/ui.js', () => ({
+  pickFile: vi.fn(),
+  showToast: vi.fn(),
+}));
+
+import { getAllProjects, createProject, createProjectFromSchema } from '../../js/db.js';
+import { pickFile, showToast } from '../../js/ui.js';
+import { templateToJSON } from '../../js/template-share.js';
 import { openMoreModal, closeMoreModal } from '../../js/views/more-modal.js';
 
 beforeEach(() => {
@@ -43,10 +51,10 @@ describe('openMoreModal', () => {
     expect(document.getElementById(labelId)).not.toBeNull();
   });
 
-  it('renders five menu items', () => {
+  it('renders six menu items', () => {
     openMoreModal();
     const items = document.querySelectorAll('.more-modal-item');
-    expect(items).toHaveLength(5);
+    expect(items).toHaveLength(6);
   });
 
   it('menu item labels include Create Sample Project, Settings, Offline Access, and About', () => {
@@ -57,6 +65,7 @@ describe('openMoreModal', () => {
     expect(labels).toContain('Offline Access (iOS)');
     expect(labels).toContain('Offline Access (Android)');
     expect(labels).toContain('About eDNALite');
+    expect(labels).toContain('Import Template');
   });
 
   it('renders a close button inside the modal header', () => {
@@ -216,5 +225,79 @@ describe('Create Sample Project menu item', () => {
     await new Promise(r => setTimeout(r, 50));
 
     expect(document.querySelector('.more-modal-backdrop')).toBeNull();
+  });
+});
+
+describe('Import Template menu item', () => {
+  const SCHEMA = {
+    title: 'River Survey',
+    templateId: 'aquatic',
+    fields: [{ key: 'ph', label: 'pH', type: 'number', status: 'required', dwc: 'dynamicProperties', mixs: 'ph' }],
+  };
+
+  /**
+   * Builds a stand-in for a picked File whose text() returns the given contents.
+   *
+   * @param {string} text - File contents.
+   * @returns {{ name: string, text: () => Promise<string> }} File-like object.
+   */
+  function fakeFile(text) {
+    return { name: 'River_Survey_template.json', text: async () => text };
+  }
+
+  /**
+   * Opens the modal, taps Import Template, and waits for the async work.
+   *
+   * @returns {Promise<void>}
+   */
+  async function tapImport() {
+    openMoreModal();
+    const items = Array.from(document.querySelectorAll('.more-modal-item'));
+    items.find(el => el.textContent.trim() === 'Import Template').click();
+    await new Promise(r => setTimeout(r, 50));
+  }
+
+  beforeEach(() => {
+    createProjectFromSchema.mockResolvedValue({ id: 'imported-1' });
+  });
+
+  it('asks for a .json file', async () => {
+    pickFile.mockResolvedValue(null);
+    await tapImport();
+    expect(pickFile).toHaveBeenCalledWith(expect.stringContaining('.json'));
+  });
+
+  it('creates a project from the file, keeping field keys, and opens it', async () => {
+    pickFile.mockResolvedValue(fakeFile(templateToJSON(SCHEMA)));
+    await tapImport();
+
+    expect(createProjectFromSchema).toHaveBeenCalledWith(SCHEMA);
+    expect(window.location.hash).toBe('#/project/imported-1');
+    expect(showToast).toHaveBeenCalledWith('Template imported');
+    expect(document.querySelector('.more-modal-backdrop')).toBeNull();
+  });
+
+  it('adds a number to the title when a project with that name exists', async () => {
+    getAllProjects.mockResolvedValue([{ id: 'p1', title: 'River Survey', templateId: null, fields: [] }]);
+    pickFile.mockResolvedValue(fakeFile(templateToJSON(SCHEMA)));
+    await tapImport();
+
+    expect(createProjectFromSchema.mock.calls[0][0].title).toBe('River Survey 2');
+  });
+
+  it('shows the file problem as an error toast and creates nothing', async () => {
+    pickFile.mockResolvedValue(fakeFile('not json'));
+    await tapImport();
+
+    expect(createProjectFromSchema).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith(expect.stringMatching(/not an eDNALite template/i), 'error');
+  });
+
+  it('does nothing when the file picker is cancelled', async () => {
+    pickFile.mockResolvedValue(null);
+    await tapImport();
+
+    expect(createProjectFromSchema).not.toHaveBeenCalled();
+    expect(showToast).not.toHaveBeenCalled();
   });
 });

@@ -32,6 +32,12 @@ vi.mock('../../js/app.js', () => ({
   navigate: vi.fn(),
 }));
 
+vi.mock('../../js/export.js', () => ({
+  generateCSV: vi.fn(),
+  generateSQLite: vi.fn(),
+  shareOrDownload: vi.fn(),
+}));
+
 import {
   getProject,
   getSamplesByProject,
@@ -41,6 +47,8 @@ import {
 } from '../../js/db.js';
 import { showView, showToast, confirmDialog } from '../../js/ui.js';
 import { navigate } from '../../js/app.js';
+import { shareOrDownload } from '../../js/export.js';
+import { metadataSummary } from '../../js/template-share.js';
 import { renderProjectDashboard } from '../../js/views/project-dashboard.js';
 
 const MOCK_PROJECT = { id: 'proj-1', content: 'Test Project\nSite\nCollector', createdAt: '2026-01-01', updatedAt: '2026-01-01' };
@@ -59,6 +67,10 @@ beforeEach(() => {
         <button class="btn-icon" id="edit-project-btn">Edit</button>
       </header>
       <div id="dashboard-fields" class="field-tags"></div>
+      <div class="template-actions">
+        <button class="btn-secondary" id="share-template-btn">Share Template</button>
+        <button class="btn-secondary" id="copy-summary-btn">Copy Summary</button>
+      </div>
       <div class="dashboard-actions">
         <button class="btn-primary btn-large" id="scan-btn">Scan Sample</button>
         <button class="btn-secondary" id="export-btn">Export Data</button>
@@ -181,5 +193,55 @@ describe('renderProjectDashboard', () => {
     await renderProjectDashboard('nonexistent-id');
     expect(navigate).toHaveBeenCalledWith('#/');
     expect(showToast).toHaveBeenCalledWith(expect.stringContaining('not found'), 'error');
+  });
+});
+
+describe('template sharing', () => {
+  const SCHEMA = {
+    title: 'Test Project',
+    templateId: null,
+    fields: [
+      { key: 'Site', label: 'Site', type: 'text', status: 'optional' },
+      { key: 'Collector', label: 'Collector', type: 'text', status: 'optional' },
+    ],
+  };
+
+  it('Share Template sends the project fields as a JSON template file', async () => {
+    await renderProjectDashboard('proj-1');
+    await document.getElementById('share-template-btn').onclick();
+
+    expect(shareOrDownload).toHaveBeenCalledTimes(1);
+    const [text, filename, mime] = shareOrDownload.mock.calls[0];
+    expect(JSON.parse(text)).toMatchObject({ format: 'ednalite-template', title: 'Test Project', fields: SCHEMA.fields });
+    expect(filename).toBe('Test_Project_template.json');
+    expect(mime).toBe('application/json');
+  });
+
+  it('Share Template shows an error toast when sharing fails', async () => {
+    shareOrDownload.mockRejectedValueOnce(new Error('boom'));
+    await renderProjectDashboard('proj-1');
+    await document.getElementById('share-template-btn').onclick();
+    expect(showToast).toHaveBeenCalledWith(expect.stringMatching(/template/i), 'error');
+  });
+
+  it('Copy Summary puts the metadata summary on the clipboard', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+    await renderProjectDashboard('proj-1');
+    await document.getElementById('copy-summary-btn').onclick();
+
+    expect(writeText).toHaveBeenCalledWith(metadataSummary(SCHEMA));
+    expect(showToast).toHaveBeenCalledWith('Summary copied');
+  });
+
+  it('Copy Summary shows an error toast when the clipboard is blocked', async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error('denied'));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+    await renderProjectDashboard('proj-1');
+    await document.getElementById('copy-summary-btn').onclick();
+
+    expect(showToast).toHaveBeenCalledWith(expect.stringMatching(/copy/i), 'error');
   });
 });

@@ -37,6 +37,8 @@ Each template field is a button: tap it to turn it off for this project. Add you
 
 Controlled-vocabulary fields are pick lists, so every sampler records the same spelling. Renaming a field later never loses the values already recorded under it.
 
+To give every collector the same fields, tap **Share Template** on the project dashboard and send the file. Collectors open **More → Import Template** to create the same project, so their exports have matching columns. **Copy Summary** copies a plain-text paragraph that lists every field with its unit and standard terms, ready for a methods section.
+
 ### Step 3: Enforcing Sample Integrity (QA/QC)
 
 Contamination tracking is critical for robust eDNA methodology. Template fields marked with a red asterisk are required, and the QA/QC checkboxes (for example **Sterile Gloves Worn?** and **Gear Decontaminated?**) must be checked before a sample can be saved. Custom checkboxes can be added for your own protocols.

@@ -9,6 +9,7 @@ import { clearElement, showView, showToast, confirmDialog, formatDate } from '..
 import { projectSchema } from '../field-model.js';
 import { navigate } from '../app.js';
 import { showExportDialog } from './export-dialog.js';
+import { shareTemplate, copySummary } from './template-actions.js';
 
 /**
  * Renders the project dashboard view for the given project.
@@ -28,7 +29,8 @@ export async function renderProjectDashboard(projectId) {
     navigate('#/');
     return;
   }
-  const { title, fields } = projectSchema(project);
+  const schema = projectSchema(project);
+  const { title, fields } = schema;
   const samples = await getSamplesByProject(projectId);
 
   document.getElementById('dashboard-title').textContent = title;
@@ -42,6 +44,9 @@ export async function renderProjectDashboard(projectId) {
     tag.textContent = field.label;
     fieldsContainer.appendChild(tag);
   });
+
+  document.getElementById('share-template-btn').onclick = () => shareTemplate(schema);
+  document.getElementById('copy-summary-btn').onclick = () => copySummary(schema);
 
   // Sample count
   document.getElementById('sample-count').textContent =

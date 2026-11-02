@@ -673,6 +673,18 @@ button.empty-state:active,
   margin-bottom: var(--spacing-sm);
 }
 
+/* Share Template + Copy Summary: one row, equal widths. Colors come from
+   .btn-secondary tokens, so light and dark themes are both covered. */
+.template-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.template-actions button {
+  flex: 1;
+}
+
 .dashboard-actions {
   display: flex;
   flex-direction: column;

@@ -9,6 +9,7 @@ import {
   formatDate,
   vibrate,
   confirmDialog,
+  pickFile,
 } from '../js/ui.js';
 
 // ---------------------------------------------------------------------------
@@ -250,5 +251,45 @@ describe('confirmDialog', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false);
     const result = await confirmDialog('Are you sure?');
     expect(result).toBe(false);
+  });
+});
+
+describe('pickFile', () => {
+  /**
+   * Captures the file input that pickFile clicks.
+   *
+   * @returns {{ input: () => HTMLInputElement }} Accessor for the clicked input.
+   */
+  function captureInput() {
+    let clicked = null;
+    vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(function click() {
+      clicked = this;
+    });
+    return { input: () => clicked };
+  }
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('opens a file input limited to the given types', () => {
+    const cap = captureInput();
+    pickFile('.json,application/json');
+    expect(cap.input().type).toBe('file');
+    expect(cap.input().accept).toBe('.json,application/json');
+  });
+
+  it('resolves with the chosen file', async () => {
+    const cap = captureInput();
+    const promise = pickFile('.json');
+    const file = new File(['{}'], 't.json');
+    Object.defineProperty(cap.input(), 'files', { value: [file] });
+    cap.input().dispatchEvent(new Event('change'));
+    await expect(promise).resolves.toBe(file);
+  });
+
+  it('resolves with null when the picker is cancelled', async () => {
+    const cap = captureInput();
+    const promise = pickFile('.json');
+    cap.input().dispatchEvent(new Event('cancel'));
+    await expect(promise).resolves.toBeNull();
   });
 });

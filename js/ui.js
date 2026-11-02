@@ -145,3 +145,41 @@ export function vibrate(ms = 50) {
 export function confirmDialog(message) {
   return Promise.resolve(window.confirm(message));
 }
+
+/**
+ * Opens the system file picker and waits for the user's choice.
+ *
+ * @param {string} accept - Allowed file types, in the input `accept` format (e.g. '.json,application/json').
+ * @returns {Promise<File|null>} The chosen file, or null when the picker is cancelled.
+ * @remarks Call it directly from a tap handler, before any await: browsers
+ * open the picker only during a user gesture. The hidden input is attached to
+ * the page because some iOS versions ignore clicks on detached inputs.
+ * Browsers that do not fire 'cancel' leave the promise pending after a cancel.
+ * @example
+ * const file = await pickFile('.json');
+ * if (file) console.log(await file.text());
+ */
+export function pickFile(accept) {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = accept;
+    input.hidden = true;
+
+    /**
+     * Removes the input and resolves with the chosen file or null.
+     *
+     * @param {File|null} file - Result to hand back.
+     * @returns {void}
+     */
+    const finish = (file) => {
+      input.remove();
+      resolve(file);
+    };
+
+    input.addEventListener('change', () => finish(input.files?.[0] ?? null));
+    input.addEventListener('cancel', () => finish(null));
+    document.body.appendChild(input);
+    input.click();
+  });
+}
